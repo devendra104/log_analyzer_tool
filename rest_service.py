@@ -1,6 +1,6 @@
 """  QE Test Result Analyzer """
 
-from source.lib import pagination_support
+from lib import pagination_support
 from multiprocessing import Process
 
 
