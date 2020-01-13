@@ -1,0 +1,52 @@
+validation_parameter:
+  db_upgrade_migrate:
+    sub_job: "False"
+    satellite6_db_upgrade_migrate:
+      upgrade_satellite_rpm: "rpm -q satellite"
+      upgrade_status_check: "foreman-maintain upgrade check
+      --target-version `foreman-maintain upgrade list-versions`|grep -w 'FAIL'|
+      awk '{print $NF}'|wc -l"
+      upgrade_version: "foreman-maintain upgrade list-versions"
+      services_status: "if [ `hammer ping|grep Status|
+      awk '/Status:/{gsub(/Status:/,//);print}'|uniq|wc -l` == 1 ];
+      then echo 'Hammer Ping Status is OK' ;else echo 'Hammer Ping Status Failed';fi"
+      keyword_availability:
+        - "create_openstack_instance"
+        - "INFO:upgrade_logging:SUCCESS"
+        - "ansible-playbook -i inventory satellite-clone-playbook.yml"
+        - "Upgrade Step: migrate_pulp..."
+        - "Upgrade Step: migrate_candlepin..."
+        - "Upgrade Step: migrate_foreman..."
+        - "Upgrade Step: Running installer..."
+      pattern_to_pattern_filter:
+        pattern1: "ansible-playbook -i inventory satellite-clone-playbook.yml"
+        pattern2: "PLAY RECAP *"
+
+  upgrade_phase:
+    sub_job: "True"
+    upgrade-to-6.7-rhel7:
+      keyword_availability:
+        - "Syncing latest capsule repos in Satellite ..."
+        - "is ready for Upgrade"
+        - "clients on RHEL6 and RHEL7 on Docker. Please wait ....."
+        - "Clients are ready for Upgrade."
+      highlited_upgrade_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    automation-preupgrade-6.7-scenario-tests-rhel7:
+      test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
+      total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
+      keyword_availability:
+        - "Started tearDownClass"
+    upgrade-phase-6.7-rhel7:
+      upgrade_satellite_rpm: "rpm -q satellite"
+      services_status: "if [ `hammer ping|grep Status|
+                            awk '/Status:/{gsub(/Status:/,//);print}'|uniq|wc -l` == 1 ];
+                            then echo 'Hammer Ping Status is OK' ;else echo 'Hammer
+                            Ping Status Failed';fi"
+      keyword_availability:
+        - "Satellite is upgraded from"
+        - "The Capsule is upgraded from"
+    automation-postupgrade-6.7-scenario-tests-rhel7:
+      test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
+      total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
+      keyword_availability:
+        - "Started tearDownClass"

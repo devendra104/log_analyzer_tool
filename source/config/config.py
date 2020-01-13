@@ -1,0 +1,9 @@
+data_location = "/Upgrade_data/dataautomation"
+username = "username of the jenkins user"
+password = "password of the jenkins user"
+openshift_username = "root"
+openshift_password = ["abc", "jjejddjd"]
+url = "Jenkins URL"
+build_data_file = "Build-Job.xls"
+unsupported_path = ["/home", "/usr", "/bin", "/temp", "/"]
+validation_type = ["upgrade_validation", "pre_upgrade"]

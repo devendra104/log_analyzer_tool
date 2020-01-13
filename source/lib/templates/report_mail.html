@@ -1,0 +1,58 @@
+<html>
+<head>
+    <link rel="stylesheet" href="/static/main.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+    <script>
+        function Success() {
+            alert("Data Submitted Successfully...")
+         }
+         function Failed(){
+            alert("Field Should not be null")
+         }
+         <!--source.close();-->
+         <!--setTimeout(Redirect, 2000)-->
+    </script>
+</head>
+<body>
+<div style="text-align:center;">
+<b>Upgrade Report</b>
+{% from "derived.html" import render_field %}
+<form method="post">
+<table class="t1" align="center" summary="Customer DB Upgrade">
+      <thead><tr>
+      <th>Customer Name</th><th> Build Number </th><th>Bugzilla</th>
+      <th>Snap Number</th><th>Recipient</th></tr></thead>
+       <tr><td>{{report_form.customer}}</td><td>{{report_form.build_no}}</td>
+           <td>{{report_form.bugzilla}}</td><td>{{report_form.snap_no}}</td>
+           <td>{{report_form.recipient}}</td></tr>
+    <tfoot>
+        <tr>
+          <th colspan="15">
+            redhat.com
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <input type="submit" name="submit" value="Submit">
+    <button type="button" onclick="window.location.href='/log_analysis_dashboard';">Home</button>
+    <button type="button" onclick="window.location.href='/report_helper';">Help</button>
+</form>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+        <script>Success()</script>
+    {% endfor %}
+    </ul>source.close();
+                    setTimeout(Redirect, 2000)
+  {% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
+</div>
+</body>
+<div>
+    <p style=text-align:center;>I am the Disclaimer</p>
+</div>
+</html>

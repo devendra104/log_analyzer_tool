@@ -1,0 +1,16 @@
+jenkins_jobs:
+  db_upgrade:
+    - satellite6_db_upgrade_migrate
+  upgrade_complete:
+    - upgrade-to-<component-version>-rhel7
+    - automation-preupgrade-<component-version>-scenario-tests-rhel7
+    - upgrade-phase-<component-version>-rhel7
+    - automation-postupgrade-6.7-scenario-tests-rhel7
+  upgrade_sync:
+    - upgrade-to-<component-version>-rhel7
+  automation_pre-upgrade:
+    - automation-preupgrade-<component-version>-scenario-tests-rhel7
+  satellite_and_capsule_upgrade:
+    - upgrade-phase--<component-version>-rhel7
+  automation_post_upgrade:
+    - automation-postupgrade-<component-version>-scenario-tests-rhel7

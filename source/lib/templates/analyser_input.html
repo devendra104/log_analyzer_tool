@@ -1,0 +1,53 @@
+<html>
+<head>
+    <link rel="stylesheet" href="/static/main.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+    <script>
+        function Success() {
+            alert("Data Submitted Successfully...")
+         }
+         function Failed(){
+            alert("Field Should not be null")
+         }
+    </script>
+</head>
+<body>
+<div style="text-align:center;">
+<b>Job Analysis Input Menu</b>
+{% from "derived.html" import render_field %}
+<form method="post">
+<table class="t1" align="center" summary="Job Analysis Input Menu">
+      <thead><tr>
+      <th>Job Name</th><th> Validator Name</th><th> Job Number</th>
+      <th>Component Version</th><th>Checks On Build Machine</th></tr></thead>
+       <tr><td>{{form.job_name}}</td><td>{{form.validator_selection}}</td>
+           <td>{{form.job_number}}</td>
+           <td>{{form.component_version}}</td><td>{{form.skip_selection}}</td>
+       </tr>
+    <tfoot>
+        <tr>
+          <th colspan="15">
+            redhat.com
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <input type="submit" name="submit" value="Submit">
+    <button type="button" onclick="window.location.href='/log_analysis_dashboard';">Home</button>
+    <button type="button" onclick="window.location.href='/analysis_helper';">Help</button>
+</form>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes >
+    {% for message in messages %}
+        <script>Success()</script>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
+</div>
+</body>
+</html>

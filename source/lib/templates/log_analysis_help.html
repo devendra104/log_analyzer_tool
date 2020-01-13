@@ -1,0 +1,45 @@
+<html>
+<head>
+    <link rel="stylesheet" href="/static/main.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+</head>
+<body>
+<table class="t1" align="center" summary="Log Analyser Helper Module">
+    <tr>
+          <th>Job Name</th>
+          <td> Job Name should be available in validation_parameter config yaml file,
+          If you want to support others job then you have to write your own parser on the
+              basis of your requirement.</td>
+      </tr>
+     <tr>
+          <th>Validator Name</th>
+          <td> Validator Name should be available in validation.py library file,
+          So right now as per my requirement, I have created the validation for only
+              upgrade job, if you want to create for your own then create the validation
+              type.</td>
+      </tr>
+    <tr>
+          <th>Job Number</th>
+          <td> The provided job number should be available in targeted Jenkins server</td>
+      </tr>
+    <tr>
+          <th>Component not checked</th>
+          <td> If you want to skip any of the component then select it and submit the
+              job, By default all the paramater should be checked</td>
+      </tr>
+
+    <tfoot>
+        <tr>
+          <th colspan="15">
+            redhat.com
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+<div align="center">
+    <button type="button" onclick="window.location.href='/input';">Back</button>
+</div>
+</body>
+</html>
