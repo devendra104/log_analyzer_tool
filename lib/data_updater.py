@@ -1,4 +1,4 @@
-from config import config
+from lib.utils import Utils
 from lib.xlsDataParser import *
 
 SHEET_NAME = {'Searching_Pattern': 0, 'Messages_for_Pattern': 0}
@@ -6,11 +6,14 @@ SHEET_NAME = {'Searching_Pattern': 0, 'Messages_for_Pattern': 0}
 
 class DataUpdater(object):
     @staticmethod
-    def test_result_update(sheet_number, row_number, data_list, file_name=None):
-        if file_name:
-            result_file_path = config.source_file_path + "/config/" + "Build-Job.xls"
+    def test_result_update(sheet_number, row_number, data_list,
+                           analysis_file_update=False):
+        if analysis_file_update:
+            result_file_path = os.path.abspath('.') + "/config/" + \
+                               Utils.get_config_value("analysis_input_file")
         else:
-            result_file_path = config.source_file_path + "/report/" + "report.xls"
+            result_file_path = os.path.abspath('.') + "/report/" + \
+                               Utils.get_config_value("analysis_output_file")
 
         xlsObj, wb_copy = XlsDataParser.copy_xls(result_file_path, sheet_number)
         column_number = 0
@@ -31,21 +34,21 @@ class DataUpdater(object):
                      ]
         row_number = 1
         sheet_number = 0
-        file_name = "Build-Job_78.xls"
-        DataUpdater.test_result_update(sheet_number, row_number, data_list, file_name)
+        DataUpdater.test_result_update(sheet_number, row_number, data_list,
+                                       analysis_file_update=True)
 
     @staticmethod
     def pattern_collection():
         searching_pattern = DataUpdater.reading_message(
             SHEET_NAME["Messages_for_Pattern"], "{}/config/{}".
-            format(config.source_file_path, config.pattern_data))
+            format(Utils.get_config_value("source_file_path"), Utils.get_config_value("pattern_data")))
         return searching_pattern
 
     @staticmethod
     def message_population():
         error_mapping_messages = \
             DataUpdater.reading_message(SHEET_NAME["Searching_Pattern"], "{}/config/{}".
-                                 format(config.source_file_path, config.message_data))
+                                 format(Utils.get_config_value("source_file_path"), Utils.get_config_value("message_data")))
         return error_mapping_messages
 
     @staticmethod

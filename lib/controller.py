@@ -49,14 +49,17 @@ class Controller:
         log analysis module to analyse the data on the basis of downloaded logs.
         :return:
         """
+        # print("FFFFFFFFFFFFFFFFFFFFFFFFfff")
+        # print("{}/config/{}".format(os.path.abspath('.'), config.analysis_input_file))
         job_list = Controller.reading_input_data_from_xls(
             self.prop_obj.sheets_number[self.prop_obj.sheets],
-            "{}/config/{}".format(config.source_file_path, config.build_data_file))
+            "{}/config/{}".format(os.path.abspath('.'),
+                                  Utils.get_config_value("analysis_input_file")))
 
         [self.prop_obj.jobs_list.append(job) for job in job_list]
         jenkins_obj = JenkinsJob()
         for job_attributes in self.prop_obj.jobs_list:
-            job_collection = Utils.sub_job_detail()[job_attributes[0]]
+            job_collection = Utils.validation_param_detail("sub_job.yaml", "jenkins_jobs")[job_attributes[0]]
             if job_attributes[2]:
                 buld_number_collection = job_attributes[2].split(",") \
                     if re.search(r",", str(job_attributes[2])) else [int(job_attributes[2])]
@@ -86,6 +89,7 @@ class Controller:
             for job_name in self.prop_obj.job_mapper:
                 self.log_analysis(job_name)
                 self.prop_obj.rows_no += 1
+            print("FFFFFFFFFFFFFFFFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
 
     @staticmethod
     def reading_input_data_from_xls(sheet_no, conf_data):
@@ -105,7 +109,8 @@ class Controller:
         This method use to create the header data in report file.
         """
         style = XlsDataParser.font(True)
-        result_file_path = config.source_file_path + "/report/" + "report.xls"
+        result_file_path = os.path.abspath('.') + "/report/" + \
+                           Utils.get_config_value("analysis_output_file")
 
         if self.prop_obj.rows_no == 0:
             xls_report = XlsDataParser(result_file_path, XlsDataParser.modeWrite)
@@ -131,8 +136,8 @@ class Controller:
             self.prop_obj.job_mapper[job_name]["validation_type"]))\
             (machine_address, self.prop_obj.job_mapper[job_name]["build_file_name"],
              self.prop_obj.job_mapper[job_name]["skip_check"]) \
-            if self.prop_obj.job_mapper[job_name]["validation_type"] in config.\
-            validation_type else Validation.unknown_type()
+            if self.prop_obj.job_mapper[job_name]["validation_type"] in Utils.\
+            get_config_value("validation_type") else Validation.unknown_type()
 
         upgrade_validation_result.pop("job_name")
         upgrade_validation_result.pop("sub_job")

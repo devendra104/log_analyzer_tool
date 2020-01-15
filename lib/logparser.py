@@ -1,6 +1,5 @@
 import re
 import os
-from config import config
 from lib.log_exception import LogException
 from lib.utils import Utils
 
@@ -17,12 +16,13 @@ class LogAnalyser:
         :param job_file_name: Uses the passed file to extract the build machine detail.
         :return:
         """
-        machine_data = Utils.machine_detail()
+        machine_data = Utils.validation_param_detail("machine_detail.yaml",
+                                                     "machine_detail")
         pattern_data = [machine_data[content] for content in machine_data if
                         re.search(r'{}'.format(content), "{}".format(job_file_name))]
         if pattern_data:
-            machine_detal = os.popen("{} {}/{}".format(pattern_data[0],
-                                                       config.data_location,
+            machine_detal = os.popen("{} {}/{}".format(pattern_data[0], Utils.\
+                                                       get_config_value("data_location"),
                                                        job_file_name)).readlines()[0].strip()
             return machine_detal
         else:
@@ -38,8 +38,8 @@ class LogAnalyser:
         """
         try:
             ran_status = os.popen("zless {}/{}|grep -w Finished: ".format
-                                  (config.data_location, job_file_name)).\
-                readlines()[0].split(":")[-1].strip()
+                                  (Utils.get_config_value("data_location"),
+                                   job_file_name)).readlines()[0].split(":")[-1].strip()
 
             return ran_status
         except Exception:
@@ -60,7 +60,7 @@ class LogAnalyser:
         try:
             for keyword in keywords:
                 keyword = os.popen('zless {}/{}|grep -w "{}"'.format(
-                    config.data_location, job_file_name, keyword)).readlines()
+                    Utils.get_config_value("data_location"), job_file_name, keyword)).readlines()
                 match = match if keyword else match + 1
             status = "All Keyword get matched" if match == 0 else \
                 "Keyword Validation Failed"
@@ -79,7 +79,7 @@ class LogAnalyser:
         :return: failed_test_cases_information
         """
         failed_test_cases_information = os.popen('zless {}/{}|{}'.format(
-            config.data_location, job_file_name, command)).readlines()
+            Utils.get_config_value("data_location"), job_file_name, command)).readlines()
         return failed_test_cases_information
 
     @staticmethod
@@ -92,7 +92,7 @@ class LogAnalyser:
         :return: suspicious_messages
         """
         suspicious_messages = {}
-        filename = "{}/{}".format(config.data_location, job_file_name)
+        filename = "{}/{}".format(Utils.get_config_value("data_location"), job_file_name)
         regex_logic = "awk -F';' '/run: /{print $1}'|" \
                       "awk -F'run:' '{print $2}'| sed -e 's/^[ \t]*//'|" \
                       "awk -F'/' '{print $1}'|awk 'NF>0'|grep -v '^mkdir\|" \
@@ -141,7 +141,7 @@ class LogAnalyser:
         """
         key1 = pattern1.replace(".", "-")
         warning_error_collection = {key1: []}
-        filename = "{}/{}".format(config.data_location, file_name)
+        filename = "{}/{}".format(Utils.get_config_value("data_location"), file_name)
         co1 = "{}".format(pattern1)
         co2 = "^{}".format(pattern2)
         command = ' /' + co1 + '/ {flag=1;next} /' + co2 + '/{flag=0} flag { print }'
@@ -170,7 +170,7 @@ class LogAnalyser:
                      'foreman-installer/capsule.log', 'foreman/production.log',
                      'foreman-proxy/proxy.log', 'candlepin/candlepin.log', 'messages',
                      'mongodb/mongodb.log', 'tomcat/catalina.out']
-        filename = "{}/{}".format(config.data_location, file_name)
+        filename = "{}/{}".format(Utils.get_config_value("data_location"), file_name)
         system_log_path = "/var/log"
         for log_type in log_types:
             datas = os.popen(

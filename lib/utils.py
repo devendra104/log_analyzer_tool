@@ -4,50 +4,32 @@ import json
 import time
 import yaml
 import paramiko
+from functools import reduce
 from lib.jenkinsjob import *
 from pymongo import MongoClient
 
 
 class Utils:
-    config_path = os.path.join(os.path.abspath("../"), "config")
+    config_path = os.path.join(os.path.abspath("."), "config")
     if not os.path.exists(config_path):
         config_path = os.path.join(os.path.abspath("."), "config")
 
     @staticmethod
-    def validation_param_detail():
+    def validation_param_detail(yaml_file_name, file_header):
         """
         This method use to convert the validation_parameter yaml file in to dictionary.
         :return: validation_param
         """
         validation_param = ast.literal_eval\
-            (json.dumps(yaml.load(open("{}/validation_parameter.yaml".\
-                                       format(Utils.config_path)),
-                                  Loader=yaml.FullLoader)["validation_parameter"]))
+            (json.dumps(yaml.load(open("{}/{}".\
+                                       format(Utils.config_path, yaml_file_name)),
+                                  Loader=yaml.FullLoader)[file_header]))
         return validation_param
 
     @staticmethod
-    def sub_job_detail():
-        """
-        This method use to convert the sub_job.yaml file into dictionary.
-        :return: validation_param
-        """
-        validation_param = ast.literal_eval\
-            (json.dumps(yaml.load(open("{}/sub_job.yaml".\
-                                       format(Utils.config_path)), Loader=yaml.FullLoader)["jenkins_jobs"]))
-        print(validation_param)
-        return validation_param
-
-    @staticmethod
-    def machine_detail():
-        """
-        This method use to convert the machine_detail yaml file into dictionary.
-        :return: validation_param
-        """
-        validation_param = ast.literal_eval \
-            (json.dumps(yaml.load(open("{}/machine_detail.yaml".\
-                                       format(Utils.config_path)), Loader=yaml.FullLoader)["machine_detail"]))
-        print("MACCCCCCCCCCCCCCCCCCCCCCCC DETAILS", validation_param)
-        return validation_param
+    def get_config_value(key):
+        cfg = Utils.validation_param_detail("environment_setup.yaml", "config")
+        return reduce(lambda c, k: c[k], key.split('.'), cfg)
 
     @staticmethod
     def page_common_logic(fs, id=1):
@@ -281,14 +263,18 @@ class Utils:
         """
         This method use to prepare the environment and check the data path exist or not.
         """
-        if '{}'.format(config.data_location) not in config.unsupported_path:
+        if '{}'.format(Utils.get_config_value("data_location"))\
+                not in Utils.get_config_value("unsupported_path"):
             try:
-                if os.path.isdir('{}'.format(config.data_location)):
+                if os.path.isdir('{}/{}'.format(os.path.abspath('.'),
+                                                Utils.get_config_value("data_location"))):
                     for data_path, directory_list, file_list in \
-                            os.walk("{}".format(config.data_location)):
+                            os.walk("{}/{}".format(os.path.abspath('.'),
+                                                   Utils.get_config_value("data_location"))):
                         [os.remove("{}/{}".format(data_path, file)) for file in file_list]
                 else:
-                    os.mkdir('{}'.format(config.data_location))
+                    os.mkdir('{}/{}'.format(os.path.abspath('.'),
+                                            Utils.get_config_value("data_location")))
             except OSError:
                 raise LogException.PATH_NOT_FOUND("FAIL:")
         else:
@@ -307,7 +293,7 @@ class Utils:
             jenkins_obj = JenkinsJob()
             if type(job_number) is int:
                 download_console_log_url = "{}/job/{}/{}/consoleFull". \
-                    format(config.url, job_name, job_number)
+                    format(Utils.get_config_value("jenkins_base_url"), job_name, job_number)
                 file_name = jenkins_obj.download_the_logs(download_console_log_url,
                                                           job_name)
                 if file_name:

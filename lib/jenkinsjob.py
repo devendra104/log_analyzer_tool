@@ -18,14 +18,14 @@ class JenkinsJob:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def __enter__(self):
-        self.jenkinsObj = Jenkins(config.url, config.username,
-                                  config.password, ssl_verify=False)
+        self.jenkinsObj = Jenkins(config.jenkins_base_url, config.jenkins_username,
+                                  config.jenkins_password, ssl_verify=False)
         return self.jenkinsObj
 
     @staticmethod
     def env_setup():
-        if not os.path.isfile(config.data_location):
-            os.mkdir(config.data_location)
+        if not os.path.isfile(os.path.join(os.path.abspath('.'), config.data_location)):
+            os.mkdir(os.path.join(os.path.abspath('.'), config.data_location))
         return 0
 
     def get_job_info(self, jobName):
@@ -49,12 +49,15 @@ class JenkinsJob:
     @staticmethod
     def download_the_logs(downloadlink, job_name):
         status = subprocess.call(
-            ["wget {} -P {}".format(downloadlink, config.data_location)], shell=True)
+            ["wget {} -P {}/{}".format(downloadlink, os.path.abspath('.'),
+                                       config.data_location)], shell=True)
         if status == 0:
             rename_file_name = "{}_{}".format(job_name, random.randint(1, 10000))
-            os.rename("{}/consoleFull".format(config.data_location), "{}/{}"
-                      .format(config.data_location, rename_file_name))\
-                if os.path.isfile("{}/consoleFull".format(config.data_location)) \
+            os.rename("{}/{}/consoleFull".format(os.path.abspath('.'),
+                                                 config.data_location), "{}/{}/{}"
+                      .format(os.path.abspath('.'), config.data_location, rename_file_name))\
+                if os.path.isfile("{}/{}/consoleFull".format(os.path.abspath('.'),
+                                                             config.data_location)) \
                 else "Nothing"
             return rename_file_name
         else:

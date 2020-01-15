@@ -20,9 +20,9 @@ class Validation:
             return False
         ssh_object = paramiko.SSHClient()
         ssh_object.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        for password in config.openshift_password:
+        for password in config.build_machine_password:
             ssh_object = Utils.ssh_connection_handling(ssh_object, machine_name,
-                                                       config.openshift_username,
+                                                       config.build_machine_username,
                                                        password)
             if not ssh_object:
                 continue
@@ -203,7 +203,8 @@ class Validation:
         :return: validation_output, validation_command, validation_job_name, sub_job
         """
         validation_job_name = re.split(r"_\d*$", "{}".format(job_name))[0]
-        validation_command = Utils.validation_param_detail()[job_type]
+        validation_command = Utils.validation_param_detail("validation_parameter.yaml",
+                                                           "validation_parameter")[job_type]
         validation_output = Validation.keyword_validation(
             validation_command[validation_job_name]["keyword_availability"], job_name)
         validation_command[validation_job_name].pop('keyword_availability')
