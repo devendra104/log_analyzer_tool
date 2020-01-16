@@ -1,4 +1,0 @@
-machine_detail:
-  satellite6_db_upgrade_migrate: "awk '/The registered system name/ {print $NF}'"
-  upgrade-to-6.7-rhel7: "awk '/The registered system name/ {print $NF}'"
-  upgrade-phase-6.7-rhel7: "awk -F':' '/Unregistering from:/ {print $(NF-1)}'"

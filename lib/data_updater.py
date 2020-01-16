@@ -27,10 +27,11 @@ class DataUpdater(object):
 
     @staticmethod
     def build_sheet_update(build_job_name, validation_type, job_number=None,
-                           component_not_check=None, component_version=None):
+                           component_not_check=None, component_version=None,
+                           snap_number=None):
         data_list = ["{}".format(build_job_name), "{}".format(validation_type),
                      "{}".format(job_number), "{}".format(component_not_check),
-                     "{}".format(component_version)
+                     "{}".format(component_version), "{}".format(snap_number)
                      ]
         row_number = 1
         sheet_number = 0
@@ -41,14 +42,16 @@ class DataUpdater(object):
     def pattern_collection():
         searching_pattern = DataUpdater.reading_message(
             SHEET_NAME["Messages_for_Pattern"], "{}/config/{}".
-            format(Utils.get_config_value("source_file_path"), Utils.get_config_value("pattern_data")))
+            format(Utils.get_config_value("source_file_path"),
+                   Utils.get_config_value("pattern_data")))
         return searching_pattern
 
     @staticmethod
     def message_population():
         error_mapping_messages = \
             DataUpdater.reading_message(SHEET_NAME["Searching_Pattern"], "{}/config/{}".
-                                 format(Utils.get_config_value("source_file_path"), Utils.get_config_value("message_data")))
+                                 format(Utils.get_config_value("source_file_path"),
+                                        Utils.get_config_value("message_data")))
         return error_mapping_messages
 
     @staticmethod

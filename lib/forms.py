@@ -4,8 +4,17 @@ from wtforms.validators import InputRequired
 
 
 class JobSearchForm(Form):
-    choices = [('Job-Name', 'Job Name'), ('Build-Number', 'Build Number'),
-               ('Build-Status', 'Build Status')]
+    choices = [
+        (
+            'Job-Name',
+            'Job Name'
+        ),
+        (
+            'Build-Number',
+            'Build Number'
+        ),
+        ('Build-Status', 'Build Status')
+    ]
     select = SelectField(' ', id=SelectField, choices=choices)
     search = StringField(' ', [InputRequired()])
     submit = SubmitField('Submit')
@@ -13,17 +22,31 @@ class JobSearchForm(Form):
 
 class ValidatorName(Form):
     job_name = StringField('', validators=[validators.required()])
-    choices = [('upgrade_validation', 'Customer DB Upgrade'),
-               ('pre_upgrade', 'Satellite and Capsule Upgrade')]
+    choices = [
+        (
+            'upgrade_validation',
+            'Customer DB Upgrade'
+        ),
+        (
+            'pre_upgrade',
+            'Satellite and Capsule Upgrade'
+        )
+    ]
     upgrade_skip_check = [
-        ("checks_on_build_machine", "Checks On Build Machine"),
-        ('no_checks_on_build_machine', 'No Checks On Build Machine'),
-       ]
-    # componentVersion = [('component_version', 'Component Version')]
+        (
+            "checks_on_build_machine",
+            "Checks On Build Machine"
+        ),
+        (
+            'no_checks_on_build_machine',
+            'No Checks On Build Machine'
+        ),
+    ]
     validator_selection = SelectField(' ', id=SelectField, choices=choices)
     skip_selection = SelectMultipleField('', id=SelectField, choices=upgrade_skip_check)
     job_number = StringField('')
     component_version = StringField('')
+    snap_number = StringField('')
     submit = SubmitField('Submit')
 
 

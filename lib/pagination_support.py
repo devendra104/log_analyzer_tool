@@ -123,9 +123,11 @@ def job_process():
         job_number = form.data['job_number']
         component_not_check = form.data["skip_selection"]
         component_version = form.data["component_version"]
+        snap_number = form.data["snap_number"]
         Utils.version_update(component_version)
         DataUpdater.build_sheet_update(job_name, validation_type, job_number,
-                                       component_not_check, component_version)
+                                       component_not_check, component_version,
+                                       snap_number)
         return render_template('data_processing.html', form=form, job_type=job_type)
     return render_template('analyser_input.html', form=form)
 

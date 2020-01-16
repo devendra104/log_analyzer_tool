@@ -21,10 +21,12 @@
 <table class="t1" align="center" summary="Log Analysis Menu">
       <thead><tr>
       <th>Job Name</th><th> Validator Name</th><th> Job Number</th>
-      <th>Component Version</th><th>Checks On Build Machine</th></tr></thead>
+      <th>Component Version</th><th>Snap/Build Version</th><th>Checks On Build Machine</th></tr></thead>
        <tr><td>{{form.job_name}}</td><td>{{form.validator_selection}}</td>
            <td>{{form.job_number}}</td>
-           <td>{{form.component_version}}</td><td>{{form.skip_selection}}</td>
+           <td>{{form.component_version}}</td>
+           <td>{{form.snap_number}}</td>
+           <td>{{form.skip_selection}}</td>
        </tr>
     <tfoot>
         <tr>

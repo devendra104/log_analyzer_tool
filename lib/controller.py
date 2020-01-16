@@ -29,7 +29,7 @@ class Controller:
         properties
         :return:
         """
-        sheet_number = {"Satellite6.4": 0}
+        sheet_number = {"Sheet_1": 0}
         Utils.environment_preparation()
         for sheet in sheet_number.keys():
             row_no = 0
@@ -49,13 +49,10 @@ class Controller:
         log analysis module to analyse the data on the basis of downloaded logs.
         :return:
         """
-        # print("FFFFFFFFFFFFFFFFFFFFFFFFfff")
-        # print("{}/config/{}".format(os.path.abspath('.'), config.analysis_input_file))
         job_list = Controller.reading_input_data_from_xls(
             self.prop_obj.sheets_number[self.prop_obj.sheets],
             "{}/config/{}".format(os.path.abspath('.'),
                                   Utils.get_config_value("analysis_input_file")))
-
         [self.prop_obj.jobs_list.append(job) for job in job_list]
         jenkins_obj = JenkinsJob()
         for job_attributes in self.prop_obj.jobs_list:
@@ -70,6 +67,8 @@ class Controller:
                         self.prop_obj.job_mapper[job_name]["time_stamp"] = time_stamp
                     self.prop_obj.job_mapper[job_name]["validation_type"] = job_attributes[1]
                     self.prop_obj.job_mapper[job_name]["skip_check"] = ast.literal_eval(job_attributes[3])
+                    self.prop_obj.job_mapper[job_name]["build_version"] = job_attributes[4]
+                    self.prop_obj.job_mapper[job_name]["snap_no"] = job_attributes[5]
 
             else:
                 with jenkins_obj:
@@ -80,6 +79,9 @@ class Controller:
                         self.prop_obj.job_mapper[job_name]["validation_type"] = job_attributes[1]
                         self.prop_obj.job_mapper[job_name]["skip_check"] = ast.literal_eval(
                             job_attributes[3])
+                        self.prop_obj.job_mapper[job_name]["build_version"] = \
+                            job_attributes[4]
+                        self.prop_obj.job_mapper[job_name]["snap_no"] = job_attributes[5]
             for job_name in self.prop_obj.job_mapper:
                 build_file, build_url = Utils.jenkins_data_collection(
                     job_name, int(self.prop_obj.job_mapper[job_name]["build_number"]))
@@ -89,7 +91,6 @@ class Controller:
             for job_name in self.prop_obj.job_mapper:
                 self.log_analysis(job_name)
                 self.prop_obj.rows_no += 1
-            print("FFFFFFFFFFFFFFFFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
 
     @staticmethod
     def reading_input_data_from_xls(sheet_no, conf_data):
@@ -151,6 +152,8 @@ class Controller:
                            "Build-Status": build_status,
                            "Validation": upgrade_validation_result,
                            "Job-Time-Stamp": job_time_stamp,
+                           "Build-Version" : self.prop_obj.job_mapper[job_name]["build_version"],
+                           "Snap-Version" : self.prop_obj.job_mapper[job_name]["snap_no"],
                            "SystemLog": upgrade_validation_result["System_Log"]
                            if "System_Log" in upgrade_validation_result else None,
                            "Job Url": self.prop_obj.job_mapper[job_name]["build_url"]}
