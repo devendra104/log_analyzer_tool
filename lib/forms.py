@@ -1,5 +1,5 @@
 from wtforms import Form, StringField, SelectField, SubmitField, validators, \
-    SelectMultipleField
+    SelectMultipleField, TextAreaField
 from wtforms.validators import InputRequired
 
 
@@ -47,6 +47,11 @@ class ValidatorName(Form):
     job_number = StringField('')
     component_version = StringField('')
     snap_number = StringField('')
+    submit = SubmitField('Submit')
+
+
+class ObservationUpdate(Form):
+    observation_data = TextAreaField(' ', [InputRequired()])
     submit = SubmitField('Submit')
 
 

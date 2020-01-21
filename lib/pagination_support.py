@@ -1,6 +1,7 @@
+import ast
 import re
 from flask import Flask, request, render_template, session, Response
-from lib.forms import JobSearchForm, ValidatorName, ReportForm
+from lib.forms import JobSearchForm, ValidatorName, ReportForm, ObservationUpdate
 from lib.data_updater import DataUpdater
 from lib.data_processing import extracting_build_info
 from lib.utils import Utils
@@ -111,6 +112,30 @@ def upgrade_report():
         Utils.report_preparation(common_report)
         return render_template('data_processing.html', job_type=job_type)
     return render_template('report_mail.html', report_form=report_form)
+
+
+@app.route('/edit_observation/<pattern_type>/<id>', methods=['GET', 'POST'])
+def edit_observation(pattern_type, id):
+    fs = extracting_build_info(search_type="_id", data_selection="{}".format(id))
+    record = Utils.collection_creation(fs)
+    form = ObservationUpdate(request.form)
+    if request.method == 'POST':
+        try:
+            observations = ast.literal_eval(form.data["observation_data"])
+            if type(observations) is dict:
+                for observation in observations:
+                    Utils.db_update(observation_record_key="{}".format(observation),
+                                    observation_record_value="{}".
+                                    format(observations[observation]))
+                    print(observation)
+        except UnboundLocalError:
+            pass
+    if pattern_type in ["automation-preupgrade", "automation-postupgrade"]:
+        return render_template('observation.html', form=form,
+                               pattern_type=pattern_type, record=record)
+    else:
+        return render_template('observation.html', form=form,
+                               pattern_type=pattern_type, record=record)
 
 
 @app.route('/input', methods=['GET', 'POST'])

@@ -225,36 +225,59 @@ class Utils:
                              .format(recipient))
 
     @staticmethod
-    def db_update(test_data):
+    def db_update(test_data=None, observation_record_key=None, observation_record_value=None):
         """
         This method use to update the log analysis database whenever new record come
         :param dict test_data:
+        :param str observation_record_key:
+        :param str observation_record_value:
         """
         client = MongoClient()
-        data_status = Utils.check_before_insertion(test_data["Build-Number"],
-                                                   test_data["Job-Name"], client)
+        if observation_record_key and observation_record_value:
+                data_status = Utils.check_before_insertion(client, observation_record_key=observation_record_key,
+                                                           observation_record_value=observation_record_value)
+        else:
+            data_status = Utils.check_before_insertion(client, build_no=test_data["Build-Number"],
+                                                       job_name=test_data["Job-Name"])
         status = True if data_status else False
         if status:
             return
-        db = client.test_database1
+        if observation_record_key and observation_record_value:
+            db = client.observation_record_db
+        else:
+            db = client.test_database1
         collections = db.files
-        collections.insert(test_data)
+        if observation_record_key and observation_record_value:
+            collections.insert({"{}".format(observation_record_key):
+                                "{}".format(observation_record_value)})
+        else:
+            collections.insert(test_data)
         client.close()
 
     @staticmethod
-    def check_before_insertion(build_no, job_name, mongo_obj):
+    def check_before_insertion(mongo_obj, observation_record_key=None,
+                               observation_record_value=None, build_no=None, job_name=None):
         """
         This method use to check whether the record present or not and return their
         status.
         :param int build_no:
         :param string job_name:
         :param obj mongo_obj:
+        :param str observation_record_key:
+        :param str observation_record_value:
         :return: status
         """
-        db = mongo_obj.test_database1
+        if observation_record_key and observation_record_value:
+            db = mongo_obj.observation_record_db
+        else:
+            db = mongo_obj.test_database1
         collections = db.files
-        fs = collections.find(
-            {'Build-Number': build_no, 'Job-Name': '{}'.format(job_name)})
+        if observation_record_key and observation_record_value:
+            fs = collections.find({"{}".format(observation_record_key):
+                                       "{}".format(observation_record_value)})
+        else:
+            fs = collections.find(
+                {'Build-Number': build_no, 'Job-Name': '{}'.format(job_name)})
         status = True if fs.count() > 0 else False
         return status
 
