@@ -1,32 +1,32 @@
 <html>
 <head>
-    <link rel="stylesheet" href="/static/main.css">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <script>
-        function Success() {
-            alert("Data Submitted Successfully...")
-         }
-         function Failed(){
-            alert("Field Should not be null")
-         }
-         <!--source.close();-->
-         <!--setTimeout(Redirect, 2000)-->
-    </script>
+     <script type="text/javascript" src="{{ url_for('static', filename='js/cancel.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/failed.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/success.js') }}"></script>
 </head>
 <body>
 <div style="text-align:center;">
 <b>Report Builder</b>
-{% from "derived.html" import render_field %}
 <form method="post">
 <table class="t1" align="center" summary="Report Builder">
       <thead><tr>
-      <th>Customer Name</th><th> Build Number </th><th>Bugzilla</th>
-      <th>Snap Number</th><th>Recipient</th></tr></thead>
-       <tr><td>{{report_form.customer}}</td><td>{{report_form.build_no}}</td>
-           <td>{{report_form.bugzilla}}</td><td>{{report_form.snap_no}}</td>
-           <td>{{report_form.recipient}}</td></tr>
+          <th data-toggle="tooltip" data-placement="left" title="Job Category would be your customer name or type of job like installer, upgrade, preupgrade etc, If you are seeking a report of multiple job type then enter their name and separate them by comma example pre_upgrade,post_upgrade or RedHat, Google, Facebook "> Job Category </th>
+          <th data-toggle="tooltip" data-placement="right" title="Job Name would be the name of job, satellite6_db_upgrade, upgrade_to_6.7 etc, you can get the job name in build history, If you have multiple number job then separate them by comma "> Job Name</th>
+          <th data-toggle="tooltip" data-placement="right" title="Job Number would be the build number of job,If you have multiple number job then separate them by comma like 123,453,222"> Build Number </th>
+          <th data-toggle="tooltip" data-placement="right" title="Version of the testing component, it can be 6.7,7.5, 2.1 etc, there is no semicolon concept here, report will be prepared for single version"> Component Version</th>
+          <th data-toggle="tooltip" data-placement="right" title="Provide the bugzilla details here, If you have more than once bugzilla for a single job then separate them by dot otherwise separate them by comma"> Bugzilla </th>
+          <th data-toggle="tooltip" data-placement="right" title="Please enter the recipient name here, It would always be single, or group"> Recipient </th>
+      </tr></thead>
+       <tr><td>{{form.job_category}}</td>
+           <td>{{form.job_name}}</td>
+           <td>{{form.build_number}}</td>
+           <td>{{form.component_version}}</td>
+           <td>{{form.bugzilla}}</td>
+           <td>{{form.recipient_list}}</td></tr>
     <tfoot>
         <tr>
           <th colspan="15">
@@ -36,8 +36,7 @@
       </tfoot>
     </table>
     <input type="submit" name="submit" value="Submit">
-    <button type="button" onclick="window.location.href='/log_analysis_dashboard';">Home</button>
-    <button type="button" onclick="window.location.href='/report_helper';">Help</button>
+    <button onclick="goBack()">Cancel</button>
 </form>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -49,7 +48,6 @@
                     setTimeout(Redirect, 2000)
   {% endif %}
 {% endwith %}
-{% block body %}{% endblock %}
 </div>
 </body>
 </html>

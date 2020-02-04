@@ -59,10 +59,12 @@ class LogAnalyser:
         match = 0
         try:
             for keyword in keywords:
-                keyword = os.popen('zless {}/{}|grep -w "{}"'.format(
-                    Utils.get_config_value("data_location"), job_file_name, keyword)).readlines()
+                keyword = os.popen('grep -w "{}" {}/{}'.
+                                   format(keyword, Utils.
+                                          get_config_value("data_location"),
+                                          job_file_name)).readlines()
                 match = match if keyword else match + 1
-            status = "All Keyword get matched" if match == 0 else \
+            status = "All Keyword matched" if match == 0 else \
                 "Keyword Validation Failed"
             return status
         except Exception:
@@ -100,6 +102,8 @@ class LogAnalyser:
                       "^firewall-cmd\|^scp\|^which\|^df\|grep\|^\[\|^/\|^/\|^[1-9]'"
         messages = os.popen("cat {}|{}".format(filename, regex_logic)).readlines()
         for message in messages:
+            temp_key = "{}".format(message).replace(".", "  ").strip()
+            suspicious_messages[temp_key] = list()
             message = message.strip().replace("'", "")
             if message:
                 try:
@@ -118,10 +122,9 @@ class LogAnalyser:
                                              "{}".format(data_mod)):
                                     # To Handle mongo db issue .(dot) as a
                                     # key store issue
-                                    temp_key = "{}".format(message).replace(".", "  ")\
-                                        .strip()
-                                    suspicious_messages[temp_key] = data_mod[0:190]\
-                                        .strip()
+
+                                    suspicious_messages[temp_key]\
+                                        .append(data_mod[0:190].strip())
                             except Exception:
                                 pass
                 except Exception:
@@ -152,7 +155,6 @@ class LogAnalyser:
                 if re.search('(Warning)|(Error)|(Failed)|(FAIL)|(Fail)|(ERROR)|(WARNING)',
                              "{}".format(data)):
                     warning_error_collection[key1].append(data.strip())
-        print(warning_error_collection)
         return warning_error_collection
 
     @staticmethod
@@ -183,4 +185,3 @@ class LogAnalyser:
                         system_log[log_type.split("/")[-1].replace(".", "-")] = \
                             data[0:5000]
         return system_log
-

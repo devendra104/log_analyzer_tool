@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-   <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <!--<img src="/static/img/red-hat-image.jpg" id="bg" alt="">-->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
 </head>
-<script type=text/javascript src="{{
-  url_for('static', filename='js/common_function.js') }}"></script>
+<script type=text/javascript src="{{url_for('static', filename='js/common_function.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/cancel.js') }}"></script>
 <body>
     <table class="t1" summary="System Log of Respected Job">
       <thead>

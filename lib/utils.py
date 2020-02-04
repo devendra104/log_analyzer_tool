@@ -1,3 +1,4 @@
+import os
 import ast
 import re
 import json
@@ -5,7 +6,7 @@ import time
 import yaml
 import paramiko
 from functools import reduce
-from lib.jenkinsjob import *
+# from lib.jenkinsjob import *
 from pymongo import MongoClient
 
 
@@ -41,7 +42,6 @@ class Utils:
         """
         per_page = 5
         requested_record = Utils.collection_creation(fs)
-        print(requested_record)
         pages = int(len(requested_record) / per_page)
         quot = int(len(requested_record) % per_page)
         if quot != 0:
@@ -168,17 +168,24 @@ class Utils:
                     <table>
                         <thead>
                             <tr>
-                                <th> Customer Name </th>
-                                <th> Upgrade URL </th>
-                                <th> Upgrade Status</th>
+                                <th> Job Category </th>
+                                <th> Job Name  </th>
+                                <th> Job Status </th>
+                                <th> Highlighted information</th>
+                                <th> Job URL </th>
                                 <th> Bugzilla </th>
                                 <th> Snap No </th>
+                                <th> Component Version </th>
                             </tr>
                         </thead> ''')
         for _ in data:
-            fd.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'
-                     .format(_, data[_]['Build Url'], data[_]['Build_Status'],
-                             data[_]['Bugzilla'], data[_]['Snap_No']))
+            fd.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}'
+                     '</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'
+                     .format(_, data[_]['job_name'], data[_]['Build_Status'],
+                             data[_]["highlighted_information"],
+                             data[_]['Build Url'], data[_]['bugzilla'],
+                             data[_]['Snap No'], data[_]['component_version']))
+
         fd.write('''<tfoot> 
                             <tr> 
                                 <th colspan="10"> redhat.com </th> 
@@ -303,28 +310,6 @@ class Utils:
         else:
             raise LogException.PATH_NOT_FOUND("PATH NOT FOUND")
 
-    @staticmethod
-    def jenkins_data_collection(job_name, job_number):
-        """
-        This method use to prepare the environment to download the requested log from
-        jenkins job.
-        :param str job_name: name of the requested job
-        :param int job_number: build number of the requested job
-        :return: file_name, download_console_log_url
-        """
-        try:
-            jenkins_obj = JenkinsJob()
-            if type(job_number) is int:
-                download_console_log_url = "{}/job/{}/{}/consoleFull". \
-                    format(Utils.get_config_value("jenkins_base_url"), job_name, job_number)
-                file_name = jenkins_obj.download_the_logs(download_console_log_url,
-                                                          job_name)
-                if file_name:
-                    return file_name, download_console_log_url
-                else:
-                    return False
-        except Exception as err:
-            print("Timeout error come: {}".format(err))
 
     @staticmethod
     def version_update(component_version):
@@ -360,7 +345,23 @@ class Utils:
         :return: ssh_object, bool value
         """
         try:
-            ssh_object.connect("".format(hostname), username=username, password=password)
+            ssh_object.connect("{}".format(hostname), username=username, password=password)
             return ssh_object
         except paramiko.ssh_exception.AuthenticationException:
             return False
+
+    @staticmethod
+    def record_updater(records, observations):
+        """
+
+        :param records:
+        :param observations:
+        :return:
+        """
+        for record in records:
+            for observation in observations:
+                if re.search(observation, "{}".format(records[record])):
+                    records[record] = "{}".format(records[record]) + " --> " + \
+                                      observations[observation]
+
+        return records

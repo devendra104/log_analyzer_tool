@@ -26,10 +26,10 @@ class DataUpdater(object):
         del wb_copy
 
     @staticmethod
-    def build_sheet_update(build_job_name, validation_type, job_number=None,
+    def build_sheet_update(build_job_name, job_number=None,
                            component_not_check=None, component_version=None,
                            snap_number=None):
-        data_list = ["{}".format(build_job_name), "{}".format(validation_type),
+        data_list = ["{}".format(build_job_name),
                      "{}".format(job_number), "{}".format(component_not_check),
                      "{}".format(component_version), "{}".format(snap_number)
                      ]

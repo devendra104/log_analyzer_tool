@@ -8,7 +8,6 @@
 
 
 import ast
-import re
 import time
 from lib.xlsDataParser import *
 from lib.jenkinsjob import *
@@ -56,40 +55,38 @@ class Controller:
         [self.prop_obj.jobs_list.append(job) for job in job_list]
         jenkins_obj = JenkinsJob()
         for job_attributes in self.prop_obj.jobs_list:
-            job_collection = Utils.validation_param_detail("sub_job.yaml", "jenkins_jobs")[job_attributes[0]]
-            if job_attributes[2]:
-                buld_number_collection = job_attributes[2].split(",") \
-                    if re.search(r",", str(job_attributes[2])) else [int(job_attributes[2])]
-                for build_number, job_name in zip(buld_number_collection, job_collection):
-                    self.prop_obj.job_mapper[job_name] = {"build_number": build_number}
+            validation_data = Utils.validation_param_detail\
+            ("validation_parameter.yaml", "jenkins_job_details")[job_attributes[0]]
+            if job_attributes[1]:
+                build_numbers = job_attributes[1].split(',')
+                for build_number in build_numbers:
                     with jenkins_obj:
-                        time_stamp = jenkins_obj.build_execution_time(job_name, build_number)
-                        self.prop_obj.job_mapper[job_name]["time_stamp"] = time_stamp
-                    self.prop_obj.job_mapper[job_name]["validation_type"] = job_attributes[1]
-                    self.prop_obj.job_mapper[job_name]["skip_check"] = ast.literal_eval(job_attributes[3])
-                    self.prop_obj.job_mapper[job_name]["build_version"] = job_attributes[4]
-                    self.prop_obj.job_mapper[job_name]["snap_no"] = job_attributes[5]
-
+                        time_stamp = jenkins_obj.build_execution_time(validation_data["job_name"], build_number)
+                        self.prop_obj.job_mapper[build_number] = {}
+                        self.prop_obj.job_mapper[build_number]["time_stamp"] = time_stamp
+                        self.prop_obj.job_mapper[build_number][
+                            "skip_check"] = ast.literal_eval(job_attributes[2])
+                        self.prop_obj.job_mapper[build_number]["build_version"] = job_attributes[3]
+                        self.prop_obj.job_mapper[build_number]["snap_no"] = job_attributes[4]
             else:
                 with jenkins_obj:
-                    for job_name in job_collection:
-                        build_number, time_stamp = jenkins_obj.get_job_info("{}".format(job_name))
-                        self.prop_obj.job_mapper[job_name] = {"build_number": build_number}
-                        self.prop_obj.job_mapper[job_name]["time_stamp"] = time_stamp
-                        self.prop_obj.job_mapper[job_name]["validation_type"] = job_attributes[1]
-                        self.prop_obj.job_mapper[job_name]["skip_check"] = ast.literal_eval(
-                            job_attributes[3])
-                        self.prop_obj.job_mapper[job_name]["build_version"] = \
-                            job_attributes[4]
-                        self.prop_obj.job_mapper[job_name]["snap_no"] = job_attributes[5]
-            for job_name in self.prop_obj.job_mapper:
-                build_file, build_url = Utils.jenkins_data_collection(
-                    job_name, int(self.prop_obj.job_mapper[job_name]["build_number"]))
-                self.prop_obj.job_mapper[job_name]["build_file_name"] = build_file
-                self.prop_obj.job_mapper[job_name]["build_url"] = build_url
+                    build_number, time_stamp = jenkins_obj.get_job_info("{}".format(validation_data["job_name"]))
+                    self.prop_obj.job_mapper[build_number] = {}
+                    self.prop_obj.job_mapper[build_number]["time_stamp"] = time_stamp
+                    self.prop_obj.job_mapper[build_number]["skip_check"] = ast.literal_eval(
+                        job_attributes[3])
+                    self.prop_obj.job_mapper[build_number]["build_version"] = \
+                        job_attributes[4]
+                    self.prop_obj.job_mapper[build_number]["snap_no"] = job_attributes[5]
 
-            for job_name in self.prop_obj.job_mapper:
-                self.log_analysis(job_name)
+            for build_number in self.prop_obj.job_mapper:
+                build_file, build_url = JenkinsJob.jenkins_data_collection(
+                    validation_data["job_name"], int(build_number))
+                self.prop_obj.job_mapper[build_number]["build_file_name"] = build_file
+                self.prop_obj.job_mapper[build_number]["build_url"] = build_url
+
+            for build_number in self.prop_obj.job_mapper:
+                self.log_analysis(build_number, validation_data)
                 self.prop_obj.rows_no += 1
 
     @staticmethod
@@ -116,47 +113,42 @@ class Controller:
         if self.prop_obj.rows_no == 0:
             xls_report = XlsDataParser(result_file_path, XlsDataParser.modeWrite)
             xls_report.open_work_book(result_file_path)
-            xls_report.writeRow(0, 0, ["Job-Name", "Build Number", "Failure Message",
-                                       "Analysis", "Build Status", "Validation",
-                                       "Job Url"], style)
+            xls_report.writeRow(0, 0, ["Job-Name", "Build Number"
+                                       "Build Status", "Validation",
+                                       "Build Time"], style)
             xls_report.close_work_book()
             self.prop_obj.rows_no = self.prop_obj.rows_no + 1
 
-    def log_analysis(self, job_name):
+    def log_analysis(self, build_number, validation_data):
         """
         This method is used to analyse the logs based on users request, and upload their
         results in mongodb database as well as xls file in report folder.
-        :param job_name: name of the job, job_name should be available in
-        sub_job.yaml file.
-
+        :param int build_number:
+        :param dict validation_data:
         """
         self.header_of_table()
-        build_status = LogAnalyser.ran_job_status(self.prop_obj.job_mapper[job_name]["build_file_name"])
-        machine_address = LogAnalyser.machine_details(self.prop_obj.job_mapper[job_name]["build_file_name"])
-        upgrade_validation_result = getattr(Validation, '{}'.format(
-            self.prop_obj.job_mapper[job_name]["validation_type"]))\
-            (machine_address, self.prop_obj.job_mapper[job_name]["build_file_name"],
-             self.prop_obj.job_mapper[job_name]["skip_check"]) \
-            if self.prop_obj.job_mapper[job_name]["validation_type"] in Utils.\
-            get_config_value("validation_type") else Validation.unknown_type()
+        job_file_name = self.prop_obj.job_mapper[build_number]["build_file_name"]
+        build_status = LogAnalyser.ran_job_status(job_file_name)
+        machine_address = LogAnalyser.machine_details(job_file_name)
 
-        upgrade_validation_result.pop("job_name")
-        upgrade_validation_result.pop("sub_job")
-        job_time_stamp = time.ctime(self.prop_obj.job_mapper[job_name]["time_stamp"])
-        xls_report_content = [job_name, self.prop_obj.job_mapper[job_name]["build_number"],
+        upgrade_validation_result = Validation.job_analysis(validation_data, job_file_name, machine_address,
+                                    self.prop_obj.job_mapper[build_number]["skip_check"])
+
+        job_time_stamp = time.ctime(self.prop_obj.job_mapper[build_number]["time_stamp"])
+        xls_report_content = [validation_data["job_name"], build_number,
                               build_status, upgrade_validation_result,
-                              self.prop_obj.job_mapper[job_name]["time_stamp"]]
+                              self.prop_obj.job_mapper[build_number]["time_stamp"]]
 
-        analysis_result = {"Job-Name": job_name,
-                           "Build-Number": self.prop_obj.job_mapper[job_name]["build_number"],
+        analysis_result = {"Job-Name": validation_data["job_name"],
+                           "Build-Number": build_number,
                            "Build-Status": build_status,
                            "Validation": upgrade_validation_result,
                            "Job-Time-Stamp": job_time_stamp,
-                           "Build-Version" : self.prop_obj.job_mapper[job_name]["build_version"],
-                           "Snap-Version" : self.prop_obj.job_mapper[job_name]["snap_no"],
+                           "Build-Version" : self.prop_obj.job_mapper[build_number]["build_version"],
+                           "Snap-Version" : self.prop_obj.job_mapper[build_number]["snap_no"],
                            "SystemLog": upgrade_validation_result["System_Log"]
                            if "System_Log" in upgrade_validation_result else None,
-                           "Job Url": self.prop_obj.job_mapper[job_name]["build_url"]}
+                           "Job Url": self.prop_obj.job_mapper[build_number]["build_url"]}
         Utils.db_update(analysis_result)
         DataUpdater.test_result_update(self.prop_obj.sheets_number[self.prop_obj.sheets],
                                        self.prop_obj.rows_no, xls_report_content)

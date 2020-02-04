@@ -9,8 +9,8 @@
     <script>
         $(document).ready(function () {
             event.preventDefault();
-            var job_type = '{{job_type}}' ;
-            if(job_type == "log_analysis") {
+            var job_processing_type = '{{job_processing_type}}' ;
+            if(job_processing_type == "log_analysis") {
                 var source = new EventSource("/progress/log_analysis");
             }
             else{
@@ -30,8 +30,8 @@
             alert("Log Analysis done successfully")
          }
         function Redirect() {
-            var job_type = '{{job_type}}' ;
-            if (job_type == "log_analysis") {
+            var job_processing_type = '{{job_processing_type}}' ;
+            if (job_processing_type == "log_analysis") {
                 window.location = "/input" ;
                 }
             else {

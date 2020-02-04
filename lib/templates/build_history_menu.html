@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
- <link rel="stylesheet" href="/static/main.css">
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
  <style>
 .t1{
   width:80%;
@@ -20,8 +20,9 @@
             <th> Index</th><th> Menu</th></tr>
             </thead>
         <tbody>
-        <tr><td>1</td><td><a href=/evaluated_data_history/Job-Name/satellite6_db_upgrade_migrate/1>Historical data of Customer DB Upgrade</a></td></tr>
-        <tr><td>2</td><td><a href=/evaluated_data_history/Job-Name/satellite_and_capsule_upgrade>Historical data of Satellite & Capsule Upgrade</a></td></tr>
+        {%for job in job_collection%}
+        <tr><td>{{loop.index}}</td><td><a href=/evaluated_data_history/Job-Name/{{job}}/1>Historical data of {{actual_jobs[loop.index-1]}}</a></td></tr>
+        {%endfor%}
         </tbody>
              <tfoot>
         <tr>

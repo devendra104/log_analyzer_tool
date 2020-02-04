@@ -4,9 +4,9 @@ import ssl
 import subprocess
 import urllib3
 import random
+from lib.utils import Utils
 import jenkinsapi
 from jenkinsapi.jenkins import Jenkins
-from config import config
 from lib.log_exception import LogException
 
 
@@ -18,14 +18,16 @@ class JenkinsJob:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def __enter__(self):
-        self.jenkinsObj = Jenkins(config.jenkins_base_url, config.jenkins_username,
-                                  config.jenkins_password, ssl_verify=False)
+        self.jenkinsObj = Jenkins(Utils.get_config_value("jenkins_base_url"),
+                                  Utils.get_config_value("jenkins_username"),
+                                  Utils.get_config_value("jenkins_password"),
+                                  ssl_verify=False)
         return self.jenkinsObj
 
     @staticmethod
     def env_setup():
-        if not os.path.isfile(os.path.join(os.path.abspath('.'), config.data_location)):
-            os.mkdir(os.path.join(os.path.abspath('.'), config.data_location))
+        if not os.path.isfile(os.path.join(os.path.abspath('.'), Utils.get_config_value("data_location"))):
+            os.mkdir(os.path.join(os.path.abspath('.'), Utils.get_config_value("data_location")))
         return 0
 
     def get_job_info(self, jobName):
@@ -50,14 +52,14 @@ class JenkinsJob:
     def download_the_logs(downloadlink, job_name):
         status = subprocess.call(
             ["wget {} -P {}/{}".format(downloadlink, os.path.abspath('.'),
-                                       config.data_location)], shell=True)
+                                       Utils.get_config_value("data_location"))], shell=True)
         if status == 0:
             rename_file_name = "{}_{}".format(job_name, random.randint(1, 10000))
             os.rename("{}/{}/consoleFull".format(os.path.abspath('.'),
-                                                 config.data_location), "{}/{}/{}"
-                      .format(os.path.abspath('.'), config.data_location, rename_file_name))\
+                                                 Utils.get_config_value("data_location")), "{}/{}/{}"
+                      .format(os.path.abspath('.'), Utils.get_config_value("data_location"), rename_file_name))\
                 if os.path.isfile("{}/{}/consoleFull".format(os.path.abspath('.'),
-                                                             config.data_location)) \
+                                                             Utils.get_config_value("data_location"))) \
                 else "Nothing"
             return rename_file_name
         else:
@@ -66,8 +68,8 @@ class JenkinsJob:
 
     @staticmethod
     def build_execution_time(job_name, build_no):
-        job_url = config.url +"/job/{}/{}/api/python?tree=timestamp".\
-            format(job_name,build_no)
+        job_url = Utils.get_config_value("jenkins_base_url") + "/job/{}/{}/api/python?tree=timestamp".\
+            format(job_name, build_no)
         timestamp_response = requests.get(url=job_url, verify=False)
         if timestamp_response.status_code == 200:
             print(timestamp_response.json()["timestamp"])
@@ -77,3 +79,26 @@ class JenkinsJob:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self.jenkinsObj
+
+    @staticmethod
+    def jenkins_data_collection(job_name, job_number):
+        """
+        This method use to prepare the environment to download the requested log from
+        jenkins job.
+        :param str job_name: name of the requested job
+        :param int job_number: build number of the requested job
+        :return: file_name, download_console_log_url
+        """
+        try:
+            # jenkins_obj = JenkinsJob()
+            if type(job_number) is int:
+                download_console_log_url = "{}/job/{}/{}/consoleFull". \
+                    format(Utils.get_config_value("jenkins_base_url"), job_name,
+                           job_number)
+                file_name = JenkinsJob().download_the_logs(download_console_log_url, job_name)
+                if file_name:
+                    return file_name, download_console_log_url
+                else:
+                    return False
+        except Exception as err:
+            print("Timeout error come: {}".format(err))

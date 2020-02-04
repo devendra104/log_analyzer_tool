@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-   <link rel="stylesheet" href="/static/main.css">
-    <!--<img src="/static/img/red-hat-image.jpg" id="bg" alt="">-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+     <script type="text/javascript"
+         src="{{ url_for('static', filename='/js/build_data.js') }}"></script>
 </head>
 <script type=text/javascript src="{{
   url_for('static', filename='js/common_function.js') }}"></script>
 <body>
     <div class="pagination">
         {%set count = 1%}
-        <a href="/evaluated_data_history/{{search_type}}/{{search_from}}/{{count}}">&laquo;</a>
+        <a href="/evaluated_data_history/Job-Name/{{job_name}}/{{count}}">&laquo;</a>
         {% for page in pages %}
-            <a href=/evaluated_data_history/{{search_type}}/{{search_from}}/{{loop.index}}>{{loop.index}}</a>
+            <a href=/evaluated_data_history/Job-Name/{{job_name}}/{{loop.index}}>{{loop.index}}</a>
         {%endfor%}
         {%set count = pages|length%}
         <a href="{{count}}">&raquo</a></div>

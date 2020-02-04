@@ -4,34 +4,14 @@ from wtforms.validators import InputRequired
 
 
 class JobSearchForm(Form):
-    choices = [
-        (
-            'Job-Name',
-            'Job Name'
-        ),
-        (
-            'Build-Number',
-            'Build Number'
-        ),
-        ('Build-Status', 'Build Status')
-    ]
-    select = SelectField(' ', id=SelectField, choices=choices)
-    search = StringField(' ', [InputRequired()])
+    job_name = StringField(' ', [InputRequired()])
+    build_number = StringField(' ', [InputRequired()])
+    component_version = StringField(' ', [InputRequired()])
     submit = SubmitField('Submit')
 
 
 class ValidatorName(Form):
-    job_name = StringField('', validators=[validators.required()])
-    choices = [
-        (
-            'upgrade_validation',
-            'Customer DB Upgrade'
-        ),
-        (
-            'pre_upgrade',
-            'Satellite and Capsule Upgrade'
-        )
-    ]
+    job_type = StringField('', validators=[validators.required()])
     upgrade_skip_check = [
         (
             "checks_on_build_machine",
@@ -42,8 +22,9 @@ class ValidatorName(Form):
             'No Checks On Build Machine'
         ),
     ]
-    validator_selection = SelectField(' ', id=SelectField, choices=choices)
-    skip_selection = SelectMultipleField('', id=SelectField, choices=upgrade_skip_check)
+    skip_selection = SelectMultipleField('', id=SelectField, choices=upgrade_skip_check,
+                                         default=('no_checks_on_build_machine',
+                                                  "'No Checks On Build Machine'"))
     job_number = StringField('')
     component_version = StringField('')
     snap_number = StringField('')
@@ -55,31 +36,10 @@ class ObservationUpdate(Form):
     submit = SubmitField('Submit')
 
 
-class CustomerName(Form):
-    customer_name = StringField('', validators=[validators.required()])
-
-
-class Build_Number(Form):
-    build_number = StringField('', validators=[validators.required()])
-
-
-class Snap_No(Form):
-    snap_no = StringField('', validators=[validators.required()])
-
-
-class Bugzilla_No(Form):
-    bugzilla = StringField('', validators=[validators.required()])
-
-
-class Mailing_List(Form):
-    mailer_name = StringField('', validators=[validators.required()])
-
-
 class ReportForm(Form):
-    """A form for one or more addresses"""
-    customer = StringField(CustomerName, [InputRequired()])
-    build_no = StringField(Build_Number, [InputRequired()])
-    snap_no = StringField(Snap_No, [InputRequired()])
-    bugzilla = StringField(Bugzilla_No, [InputRequired()])
-    recipient = StringField(Mailing_List, [InputRequired()])
-    submit = SubmitField('Submit')
+    job_category = StringField('', validators=[validators.required()])
+    build_number = StringField('', validators=[validators.required()])
+    job_name = StringField('', validators=[validators.required()])
+    component_version = StringField('', validators=[validators.required()])
+    bugzilla = StringField('', validators=[validators.required()])
+    recipient_list = StringField('', validators=[validators.required()])

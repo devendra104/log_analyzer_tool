@@ -1,8 +1,8 @@
 config:
   data_location: "downloaded_data"
-  jenkins_username: "username of the jenkins user"
-  jenkins_password: "password of the jenkins user"
-  build_machine_username: "XYZ"
+  jenkins_username: "XYZ"
+  jenkins_password: "XYZ"
+  build_machine_username: "root"
   build_machine_password:
     - "password1"
     - "password2"
