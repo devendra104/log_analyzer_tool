@@ -1,0 +1,77 @@
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+</head>
+<script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='js/common_function.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='js/search_by_second_field.js') }}"></script>
+<style>
+.t1{
+  width:60%;
+  min-width: 60px;
+  min-height:60px;
+  text-align: center;
+  border:1px solid black;
+  }
+
+.search_bar input[type="text"]{
+    position:relative;
+    left:50%;
+    top:25%;
+    width:10%;
+</style>
+<h2 style="margin:0;">
+      Error collection & their observation
+    </h2>
+ <div class="search_bar">
+    <input type="text" id="myInput" onkeyup="searchByField()"
+        placeholder="Type the error name.." title="Type the error name">
+ </div>
+<body>
+    <div class="pagination">
+        {%set count = 1%}
+        <a href="/list_of_error/{{count}}">&laquo;</a>
+        {% for page in pages %}
+            <a href=/list_of_error/{{loop.index}}>{{loop.index}}</a>
+        {%endfor%}
+        {%set count = pages|length%}
+        <a href="{{count}}">&raquo</a></div>
+    <table class="t1" summary="Observed Error Collection" id="myTable">
+      <thead>
+            <tr>
+            <th rowspan="2">Index</th>
+            <th rowspan="2">Error Name</th>
+            <th rowspan="2">Observation</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for comment in record %}
+        <tr> <td>{{index[loop.index-1]}}</td>
+            {%for observation in comment %}
+                {%if observation != "_id" %}
+                    <td> {{observation}} </td>
+                    <td>{{comment[observation]}}</td>
+                {%endif%}
+            {%endfor%}
+        </tr>
+      {%endfor%}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="15">
+            redhat.com
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <div>
+    <button onclick="goBack()">Back</button>
+    <button type="button" onclick="window.location.href='/log_analysis_dashboard';">Home</button>
+    </div>
+</body>
+</html>
