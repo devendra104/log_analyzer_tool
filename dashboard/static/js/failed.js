@@ -1,3 +1,3 @@
 function Failed(){
-    alert("Field Should not be null")
+    alert("Field should be dictionary")
 }

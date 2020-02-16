@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
 </head>
-<script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/failed.js') }}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <body>
 <form method="post">
     <table class="t1" summary="Enter your observation">
@@ -71,7 +73,17 @@
       </tfoot>
     </table>
     <input type="submit" name="submit" value="Submit">
-    <button onclick="goBack()">Back</button>
+    <button type="button" onclick="window.location.href='/evaluated_data_history/Job-Name/{{record['Job-Name']}}/{{count}}'">Back</button>
+    <button type="button" onclick="window.location.href='/';">Home</button>
     </form>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{%endwith%}
 </body>
 </html>

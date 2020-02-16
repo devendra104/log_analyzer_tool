@@ -14,7 +14,7 @@ from utils.jenkinsjob import *
 from utils.logparser import LogAnalyser
 from utils.data_updater import DataUpdater
 from utils.validation import Validation
-from utils.db import accessing_observation_db
+from utils.db import *
 from utils.common import Common
 from utils.system_properties import SystemProperties
 
@@ -112,7 +112,7 @@ class Controller:
                            Common.get_config_value("analysis_output_file")
 
         if self.prop_obj.rows_no == 0:
-            xls_report = Xlsparser(result_file_path, Xlsparser.modeWrite)
+            xls_report = Xlsparser(result_file_path, Xlsparser.MODEWRITE)
             xls_report.open_work_book(result_file_path)
             xls_report.write_row(0, 0, ["Job-Name", "Build Number"
                                        "Build Status", "Validation",
@@ -133,7 +133,7 @@ class Controller:
         machine_address = LogAnalyser.machine_details(job_file_name)
 
         upgrade_validation_result = Validation.job_analysis(validation_data, job_file_name, machine_address,
-                                    self.prop_obj.job_mapper[build_number]["skip_check"])
+                                                            self.prop_obj.job_mapper[build_number]["skip_check"])
 
         job_time_stamp = time.ctime(self.prop_obj.job_mapper[build_number]["time_stamp"])
         xls_report_content = [validation_data["job_name"], build_number,
@@ -145,8 +145,9 @@ class Controller:
                            "Build-Status": build_status,
                            "Validation": upgrade_validation_result,
                            "Job-Time-Stamp": job_time_stamp,
-                           "Build-Version" : self.prop_obj.job_mapper[build_number]["build_version"],
-                           "Snap-Version" : self.prop_obj.job_mapper[build_number]["snap_no"],
+                           "Build-Version": self.prop_obj.job_mapper[build_number]["build_version"],
+                           "Snap-Version": self.prop_obj.job_mapper[build_number]["snap_no"],
+                           "highlighted_information": upgrade_validation_result["highlighted_content"],
                            "SystemLog": upgrade_validation_result["System_Log"]
                            if "System_Log" in upgrade_validation_result else None,
                            "Job Url": self.prop_obj.job_mapper[build_number]["build_url"]}
@@ -157,6 +158,6 @@ class Controller:
                 record_updater(analysis_result["Validation"]["All_Commands_Execution_status"],
                                observated_content)
 
-        Common.db_update(analysis_result)
+        db_update(analysis_result)
         DataUpdater.test_result_update(self.prop_obj.sheets_number[self.prop_obj.sheets],
-                                        self.prop_obj.rows_no, xls_report_content)
+                                       self.prop_obj.rows_no, xls_report_content)

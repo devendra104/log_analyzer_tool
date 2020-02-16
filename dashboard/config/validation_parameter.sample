@@ -1,7 +1,7 @@
 jenkins_job_details:
   job1_1:
     job_name: "satellite6_db_upgrade_migrate"
-    check_on_build_environement:
+    check_on_build_environment:
       upgrade_satellite_rpm: "rpm -q satellite"
       upgrade_status_check: "foreman-maintain upgrade check
       --target-version `foreman-maintain upgrade list-versions`|grep -w 'FAIL'|
@@ -22,11 +22,11 @@ jenkins_job_details:
     pattern_to_pattern_filter:
       pattern1: "ansible-playbook -i inventory satellite-clone-playbook.yml"
       pattern2: "PLAY RECAP *"
-    highlited_upgrade_content: ""
+    highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
 
   job1_2:
     job_name: "upgrade-to-<component-version>-rhel7"
-    check_on_build_environement: ""
+    check_on_build_environment: ""
     test_execution_record: ""
     keyword_availability:
       - "Syncing latest capsule repos in Satellite ..."
@@ -34,22 +34,22 @@ jenkins_job_details:
       - "clients on RHEL6 and RHEL7 on Docker. Please wait ....."
       - "Clients are ready for Upgrade."
     pattern_to_pattern_filter: ""
-    highlited_upgrade_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
 
   job1_3:
     job_name: "automation-preupgrade-<component-version>-scenario-tests-rhel7"
-    check_on_build_environement: ""
+    check_on_build_environment: ""
     test_execution_record:
       test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
       total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
     pattern_to_pattern_filter: ""
     keyword_availability:
       - "Started tearDownClass"
-    highlited_upgrade_content: ""
+    highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
 
   job1_4:
     job_name: "upgrade-phase-<component-version>-rhel7"
-    check_on_build_environement:
+    check_on_build_environment:
       upgrade_satellite_rpm: "rpm -q satellite"
       services_status: "if [ `hammer ping|grep Status|
                             awk '/Status:/{gsub(/Status:/,//);print}'|uniq|wc -l` == 1 ];
@@ -60,15 +60,15 @@ jenkins_job_details:
     keyword_availability:
       - "Satellite is upgraded from"
       - "The Capsule is upgraded from"
-    highlited_upgrade_content: ""
+    highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
 
   job1_5:
     job_name: "automation-postupgrade-<component-version>-scenario-tests-rhel7"
-    check_on_build_environement: ""
+    check_on_build_environment: ""
     test_execution_record:
       test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
       total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
     pattern_to_pattern_filter: ""
     keyword_availability:
       - "Started tearDownClass"
-    highlited_upgrade_content: ""
+    highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"

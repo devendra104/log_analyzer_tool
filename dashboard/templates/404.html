@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+    <script src="{{ url_for('static', filename='js/tooltip.js') }}"></script>
+   <script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .imgbox {
+        display: grid;
+        height: 100%;
+    }
+    .center-fit {
+        max-width: 100%;
+        max-height: 100vh;
+        margin: auto;
+    }
+</style>
+
 </head>
 <body>
-<h2> Page Not Found: 404</h2>
+<div class="imgbox">
+    <img class="center-fit" src="{{url_for('static', filename='img/404.png') }}" alt="">
+</div>
 </body>
 </html>

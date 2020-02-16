@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-     <script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/failed.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/success.js') }}"></script>
 </head>
@@ -20,13 +19,18 @@
           <th data-toggle="tooltip" data-placement="right" title="Version of the testing component, it can be 6.7,7.5, 2.1 etc, there is no semicolon concept here, report will be prepared for single version"> Component Version</th>
           <th data-toggle="tooltip" data-placement="right" title="Provide the bugzilla details here, If you have more than once bugzilla for a single job then separate them by dot otherwise separate them by comma"> Bugzilla </th>
           <th data-toggle="tooltip" data-placement="right" title="Please enter the recipient name here, It would always be single, or group"> Recipient </th>
+          <th data-toggle="tooltip" data-placement="right" title="Please enter the subject of mail"> Subject </th>
+          <th data-toggle="tooltip" data-placement="right" title="Please enter the body of mail"> Body </th>
       </tr></thead>
        <tr><td>{{form.job_category}}</td>
            <td>{{form.job_name}}</td>
            <td>{{form.build_number}}</td>
            <td>{{form.component_version}}</td>
            <td>{{form.bugzilla}}</td>
-           <td>{{form.recipient_list}}</td></tr>
+           <td>{{form.recipient_list}}</td>
+           <td>{{form.subject_details}}</td>
+           <td>{{form.message_details}}</td>
+       </tr>
     <tfoot>
         <tr>
           <th colspan="15">
@@ -36,7 +40,8 @@
       </tfoot>
     </table>
     <input type="submit" name="submit" value="Submit">
-    <button onclick="goBack()">Back</button>
+    <button type="button" onclick="window.location.href='/';">Home</button>
+    <button type="button" onclick="window.location.href='/job_list';">Please click if you want to see the job details</button>
 </form>
 {% with messages = get_flashed_messages() %}
   {% if messages %}

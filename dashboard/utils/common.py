@@ -6,6 +6,7 @@ import xlwt
 import time
 import yaml
 import paramiko
+import shutil
 from functools import reduce
 from pymongo import MongoClient
 
@@ -160,10 +161,10 @@ class Common:
         
                 <body>
                     <p><font color="black"> Hi All </font></p>
-                    <p><font color="black"> Installer succeeded while upgrading the 
-                    following 6.5 DB's to 6.6 snap1. 
-                    Please see the job links below for more details:
-                    </font></p>
+                    ''')
+        fd.write('''
+            <p><font color="black">{}
+                </font></p>
                     <table>
                         <thead>
                             <tr>
@@ -175,14 +176,19 @@ class Common:
                                 <th> Bugzilla </th>
                                 <th> Snap No </th>
                                 <th> Component Version </th>
-                            </tr>
-                        </thead> ''')
+                                </tr></thead> '''.format(data["body"]))
+        data.pop('body')
+        data.pop("subject")
         for _ in data:
-            fd.write('<tr><td>{}</td><td>{}</td><td>{}</td><td>{}'
-                     '</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'
-                     .format(_, data[_]['job_name'], data[_]['Build_Status'],
-                             data[_]["highlighted_information"],
-                             data[_]['Build Url'], data[_]['bugzilla'],
+            fd.write('<tr><td>{}</td><td>{}</td><td>{}</td>'.format(_, data[_]['job_name'], data[_]['Build_Status']))
+            fd.write("<td>")
+            for content in data[_]["highlighted_information"]:
+                if content.strip():
+                    fd.write("<li>{}</li>".format(content))
+            fd.write("</td>")
+
+            fd.write("<td><a href={}>Job Link</a></td><td>{}</td><td>{}</td><td>{}</td></tr>"
+                     .format(data[_]['Build Url'], data[_]['bugzilla'],
                              data[_]['Snap No'], data[_]['component_version']))
 
         fd.write('''<tfoot> 
@@ -191,7 +197,10 @@ class Common:
                             </tr> 
                     </tfoot>
                 </table>
+                
             </body>
+            <p><font color="black">Thanks</font></p>
+            <font color="black">Upgrade Team</font>
         </html>
         ''')
         fd.close()
@@ -231,64 +240,6 @@ class Common:
                              .format(recipient))
 
     @staticmethod
-    def db_update(test_data=None, observation_record_key=None, observation_record_value=None):
-        """
-        This method use to update the log analysis database whenever new record come
-        :param dict test_data:
-        :param str observation_record_key:
-        :param str observation_record_value:
-        """
-        client = MongoClient()
-        if observation_record_key and observation_record_value:
-                data_status = Common.check_before_insertion(
-                    client, observation_record_key=observation_record_key,
-                    observation_record_value=observation_record_value)
-        else:
-            data_status = Common.check_before_insertion(
-                client, build_no=test_data["Build-Number"], job_name=test_data["Job-Name"])
-        status = True if data_status else False
-        if status:
-            return
-        if observation_record_key and observation_record_value:
-            db = client.observation_record_db
-        else:
-            db = client.test_database1
-        collections = db.files
-        if observation_record_key and observation_record_value:
-            collections.insert({"{}".format(
-                observation_record_key): "{}".format(observation_record_value)})
-        else:
-            collections.insert(test_data)
-        client.close()
-
-    @staticmethod
-    def check_before_insertion(mongo_obj, observation_record_key=None,
-                               observation_record_value=None, build_no=None, job_name=None):
-        """
-        This method use to check whether the record present or not and return their
-        status.
-        :param int build_no:
-        :param string job_name:
-        :param obj mongo_obj:
-        :param str observation_record_key:
-        :param str observation_record_value:
-        :return: status
-        """
-        if observation_record_key and observation_record_value:
-            db = mongo_obj.observation_record_db
-        else:
-            db = mongo_obj.test_database1
-        collections = db.files
-        if observation_record_key and observation_record_value:
-            fs = collections.find({"{}".format(observation_record_key):
-                                       "{}".format(observation_record_value)})
-        else:
-            fs = collections.find(
-                {'Build-Number': build_no, 'Job-Name': '{}'.format(job_name)})
-        status = True if fs.count() > 0 else False
-        return status
-
-    @staticmethod
     def environment_preparation():
         """
         This method use to prepare the environment and check the data path exist or not.
@@ -297,8 +248,9 @@ class Common:
                                           Common.get_config_value("report_location"))
         data_location_path = '{}/{}'.format(os.path.abspath('.'),
                                             Common.get_config_value("data_location"))
-
         if '{}'.format(Common.get_config_value("report_location")):
+            if os.path.isdir("{}".format(report_file_path)):
+                shutil.rmtree("{}".format(report_file_path))
             os.mkdir("{}".format(report_file_path))
             workbook = xlwt.Workbook()
             workbook.add_sheet('test1')
@@ -317,7 +269,6 @@ class Common:
         else:
             raise LogException.PATH_NOT_FOUND("PATH NOT FOUND")
 
-
     @staticmethod
     def version_update(component_version):
         """
@@ -326,8 +277,7 @@ class Common:
         :param str component_version: version name of the build job,
         it would be like 6.0, 6.5 etc
         """
-        version_update_list = {"sub_job.sample": "sub_job.yaml",
-                               "validation_parameter.sample": "validation_parameter.yaml"
+        version_update_list = {"validation_parameter.sample": "validation_parameter.yaml"
                                , "machine_detail.sample": "machine_detail.yaml"}
         command = "sed -i 's/<component-version>/{}/'".format(component_version)
         for tmp_file in version_update_list:
@@ -366,9 +316,83 @@ class Common:
         :return:
         """
         for record in records:
-            for observation in observations:
-                if observation != "_id":
-                    if re.search(observation, "{}".format(records[record])):
-                        records[record] = "{}".format(records[record]) + " --> " + \
-                                         observations[observation]
+            try:
+                record = ast.literal_eval(records[record])
+            except Exception:
+                record = record
+            if type(records[record]) is dict:
+                records[record] = Common.record_updater(records[record], observations)
+
+            elif type(records[record]) is list:
+                list_records = []
+                for list_record in records[record]:
+                    for observation in observations:
+                        if observation != "_id":
+                            if re.search(observation, "{}".format(list_record)):
+                                if not re.search(observations[observation],
+                                                 "{}".format(records[record])):
+                                    list_records.append("{}".format(list_record) + " --> " +
+                                                        observations[observation])
+                                else:
+                                    list_records.append(list_record)
+                            else:
+                                list_records.append(list_record)
+                records[record] = list_records
+            else:
+                for observation in observations:
+                    if observation != "_id":
+                        if re.search(observation, "{}".format(records[record])):
+                            if not re.search(observations[observation], "{}".format(records[record])):
+                                records[record] = "{}".format(records[record]) + " --> " + \
+                                                observations[observation]
+
         return records
+
+    @staticmethod
+    def json_validator(form_object):
+        """
+
+        :param form_object:
+        :return:
+        """
+        try:
+            if ast.literal_eval(form_object.data["observation_data"]):
+                return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def data_preparation_for_report(job_category, job_name, bugzilla, build_number):
+        common_report = dict()
+        if len(job_category) == len(job_name) == len(bugzilla):
+            for job_no in range(len(job_category)):
+                common_report[job_category[job_no]] = {"job_name": job_name[job_no],
+                                                       "build_number": build_number[job_no],
+                                                       "bugzilla": bugzilla[job_no]}
+        elif len(bugzilla) == 0 and (len(job_category) == len(job_name)):
+            for job_no in range(len(job_category)):
+                common_report[job_category[job_no]] = {"job_name": job_name[job_no],
+                                                       "build_number": build_number[job_no],
+                                                       "bugzilla": "No Bugzilla"}
+        else:
+            for job_no in range(len(job_category)):
+                try:
+                    common_report[job_category[job_no]] = {"job_name": job_name[job_no]}
+                    temp = job_no
+                except IndexError:
+                    common_report[job_category[job_no]] = {"job_name": job_name[temp]}
+
+            for job_no in range(len(job_category)):
+                try:
+                    common_report[job_category[job_no]]["build_number"] = build_number[job_no]
+                    temp = job_no
+                except IndexError:
+                    common_report[job_category[job_no]]["build_number"] = build_number[temp]
+
+            for job_no in range(len(job_category)):
+                try:
+                    common_report[job_category[job_no]]["bugzilla"] = bugzilla[job_no]
+                    temp = job_no
+                except IndexError:
+                    common_report[job_category[job_no]]["bugzilla"] = bugzilla[temp]
+        return common_report

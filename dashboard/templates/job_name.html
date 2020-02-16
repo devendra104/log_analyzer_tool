@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+</head>
+<script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='js/common_function.js') }}"></script>
+<body>
+<div style="text-align:center;">
+<b>Available Job Name</b>
+<style>
+.t1{
+  width:60%;
+  min-width: 50px;
+  min-height:50px;
+  text-align: center;
+  border:1px solid black;
+  }
+</style>
+    <table class="t1" align="center" summary="Available Job Name">
+      <thead>
+            <th rowspan="2">Job Name</th>
+            <th rowspan="2">Build Number</th>
+            <th rowspan="2">Component Version</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for comment in job_records %}
+        <tr><td> {{comment}} </td>
+            <td>{{job_records[comment]["Build-Number"]}}</td>
+            <td>{{job_records[comment]["Build-Version"]}}</td>
+        </tr>
+      {%endfor%}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="15">
+            redhat.com
+          </th>
+        </tr>
+      </tfoot>
+    </table>
+    <button onclick="goBack()">Back</button>
+</div>
+</body>
+</html>

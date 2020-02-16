@@ -2,13 +2,15 @@ config:
   data_location: "downloaded_data"
   report_location: "report"
   jenkins_username: "XYZ"
-  jenkins_password: "abc"
+  jenkins_password: "XYZ"
+  database_name: "analysis_record_db"
+  observation_db_name: "observation_record_db"
   build_machine_username: "root"
   build_machine_password:
     - "password1"
     - "password2"
     - "password3"
-  jenkins_base_url: "https://jenkins.com"
+  jenkins_base_url: "https://xyz.com"
   analysis_input_file: "build.xls"
   analysis_output_file: "report.xls"
   unsupported_path:

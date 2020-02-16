@@ -14,11 +14,18 @@ class SearchByField(Form):
     choices = [('Job-Name', 'Job Name'),
                ('Build-Number', 'Build Number'),
                ('Build-Status', 'Build Status'),
-               ('Component-Version', 'Build Version'),
+               ('Build-Version', 'Build Version'),
                ('Snap-Version', 'Snap Version')
                ]
     select = SelectField(' ', id=SelectField, choices=choices)
     search = StringField(' ', [InputRequired()])
+    submit = SubmitField('Submit')
+
+
+class DeleteBuildJob(Form):
+    job_name = StringField(' ', [InputRequired()])
+    build_number = StringField(' ', [InputRequired()])
+    component_version = StringField(' ', [InputRequired()])
     submit = SubmitField('Submit')
 
 
@@ -53,5 +60,7 @@ class ReportForm(Form):
     build_number = StringField('', validators=[validators.required()])
     job_name = StringField('', validators=[validators.required()])
     component_version = StringField('', validators=[validators.required()])
-    bugzilla = StringField('', validators=[validators.required()])
+    bugzilla = StringField('')
     recipient_list = StringField('', validators=[validators.required()])
+    subject_details = StringField('', validators=[validators.required()])
+    message_details = TextAreaField('')

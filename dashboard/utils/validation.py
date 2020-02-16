@@ -90,9 +90,9 @@ class Validation:
 
         if validation_data["test_execution_record"]:
             total_test_failure = LogAnalyser.regex_information_extractor(
-                job_file_name, validation_data["test_failure"])
+                job_file_name, validation_data["test_execution_record"]["test_failure"])
             total_test = LogAnalyser.regex_information_extractor(
-                job_file_name, validation_data["total_test_executed"])
+                job_file_name, validation_data["test_execution_record"]["total_test_executed"])
             job_result["Pre_Upgrade_test_Failure"] = total_test_failure
             job_result["Total Test Executed"] = total_test
         else:
@@ -104,7 +104,15 @@ class Validation:
         else:
             job_result["on_machine_output"] = Validation.\
                 command_execution_on_build_machine(
-                validation_data["check_on_build_environement"], machine_name)
+                validation_data["check_on_build_environment"], machine_name)
+        if validation_data["highlighted_content"]:
+            highlighted_data = LogAnalyser.regex_information_extractor(
+                job_file_name, validation_data["highlighted_content"])
+            job_result["highlighted_content"] = highlighted_data
+
+        else:
+            job_result["highlighted_content"] = ""
+
         if validation_data["pattern_to_pattern_filter"]:
             pattern1 = validation_data["pattern_to_pattern_filter"]["pattern1"]
             pattern2 = validation_data["pattern_to_pattern_filter"]["pattern2"]

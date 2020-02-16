@@ -1,12 +1,10 @@
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <!--<img src="/static/img/red-hat-image.jpg" id="bg" alt="">-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
     <script src="{{ url_for('static', filename='js/tooltip.js') }}"></script>
-   <script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
 </head>
 <style>
 .t1{
@@ -36,8 +34,7 @@
       </tfoot>
     </table>
     <input type="submit" name="submit" value="Submit">
-    <button onclick="goBack()">Back</button>
-    <button type="button" onclick="window.location.href='/log_analysis_dashboard';">Home</button>
+    <button type="button" onclick="window.location.href='/';">Home</button>
 </form>
 </div>
 </body>
