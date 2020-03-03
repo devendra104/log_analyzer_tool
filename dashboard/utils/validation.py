@@ -108,10 +108,11 @@ class Validation:
         if validation_data["highlighted_content"]:
             highlighted_data = LogAnalyser.regex_information_extractor(
                 job_file_name, validation_data["highlighted_content"])
-            job_result["highlighted_content"] = highlighted_data
+            job_result["All_Commands_Execution_status"]["highlighted_content"] = \
+                highlighted_data
 
         else:
-            job_result["highlighted_content"] = ""
+            job_result["All_Commands_Execution_status"]["highlighted_content"] = ""
 
         if validation_data["pattern_to_pattern_filter"]:
             pattern1 = validation_data["pattern_to_pattern_filter"]["pattern1"]

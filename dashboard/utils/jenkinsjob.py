@@ -51,7 +51,7 @@ class JenkinsJob:
     @staticmethod
     def download_the_logs(downloadlink, job_name):
         status = subprocess.call(
-            ["wget {} -P {}/{}".format(downloadlink, os.path.abspath('.'),
+            ["wget {} -P {}/{} --no-check-certificate".format(downloadlink, os.path.abspath('.'),
                                        Common.get_config_value("data_location"))], shell=True)
         if status == 0:
             rename_file_name = "{}_{}".format(job_name, random.randint(1, 10000))
@@ -72,6 +72,7 @@ class JenkinsJob:
             format(job_name, build_no)
         timestamp_response = requests.get(url=job_url, verify=False)
         if timestamp_response.status_code == 200:
+            print(timestamp_response.json()["timestamp"])
             return timestamp_response.json()["timestamp"]
         else:
             return timestamp_response.status_code
@@ -89,6 +90,7 @@ class JenkinsJob:
         :return: file_name, download_console_log_url
         """
         try:
+            # jenkins_obj = JenkinsJob()
             if type(job_number) is int:
                 download_console_log_url = "{}/job/{}/{}/consoleFull". \
                     format(Common.get_config_value("jenkins_base_url"), job_name,

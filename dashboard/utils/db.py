@@ -2,7 +2,7 @@ import bson
 from utils.common import Common
 from pymongo import MongoClient
 
-DB_NAME = Common.validation_param_detail("environment_setup.yaml", "config")
+DB_CONFIG = Common.validation_param_detail("environment_setup.yaml", "config")
 
 
 def get_db_connection(db_name=None):
@@ -10,7 +10,8 @@ def get_db_connection(db_name=None):
     :param db_name:
     :return:
     """
-    connection = MongoClient()[db_name]
+    connection = MongoClient(host=DB_CONFIG["mongodb_container"],
+                             port=DB_CONFIG["mongodb_port"])[db_name]
     return connection
 
 
@@ -22,7 +23,7 @@ def extracting_build_info(job_name=None, build_number=None,
     :param component_version:
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     if job_name and build_number and component_version:
         fs = collections.find({"Job-Name": '{}'.format(job_name),
@@ -39,7 +40,7 @@ def extracting_data_by_field(field_name=None, field_value=None):
     :param field_value:
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     fs = collections.find({"{}".format(field_name): "{}".format(field_value)})
     return fs
@@ -50,7 +51,7 @@ def regex_data_retrieval(job_name):
     :param job_name:
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     fs = collections.find({'Job-Name': {'$regex': '{}'.format(job_name)}})
     return fs
@@ -61,7 +62,7 @@ def accessing_data_via_id(build_id=None):
     :param build_id:
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     fs = collections.find({"_id": bson.ObjectId("{}".format(build_id))})
     return fs
@@ -71,7 +72,7 @@ def accessing_all_data(check_before_insert=False):
     """
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     if check_before_insert:
         return collections
@@ -84,7 +85,7 @@ def delete_record(build_id=None):
     :param id:
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     fs = collections.delete_one({"_id": bson.ObjectId("{}".format(build_id))})
     return fs
@@ -94,7 +95,7 @@ def update_record(build_id=None, old_record=None):
     """
     :return:
     """
-    db = get_db_connection(db_name=DB_NAME["database_name"])
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     query = {"_id": bson.ObjectId("{}".format(build_id))}
     new_value = {"$set": old_record}
@@ -102,7 +103,7 @@ def update_record(build_id=None, old_record=None):
 
 
 def accessing_observation_db(check_before_insert=False):
-    db = get_db_connection(db_name=DB_NAME["observation_db_name"])
+    db = get_db_connection(db_name=DB_CONFIG["observation_db_name"])
     collections = db.files
     if check_before_insert:
         return collections

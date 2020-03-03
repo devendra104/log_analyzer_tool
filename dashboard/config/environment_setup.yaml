@@ -5,12 +5,17 @@ config:
   jenkins_password: "XYZ"
   database_name: "analysis_record_db"
   observation_db_name: "observation_record_db"
+  mongodb_container: "mongodb"
+  build_server_hostname: "build_server.com"
+  mail_script_name: "mail_content.sh"
+  mail_script_location: "/root"
+  mongodb_port: 27017
   build_machine_username: "root"
   build_machine_password:
     - "password1"
     - "password2"
     - "password3"
-  jenkins_base_url: "https://xyz.com"
+  jenkins_base_url: "https://jenkins_XYZ.com"
   analysis_input_file: "build.xls"
   analysis_output_file: "report.xls"
   unsupported_path:
@@ -19,3 +24,6 @@ config:
     - "/bin"
     - "/temp"
     - "/"
+  test_map:
+    - "automation-preupgrade"
+    - "automation-postupgrade"

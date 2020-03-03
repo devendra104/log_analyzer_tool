@@ -1,4 +1,5 @@
 import ast
+import os
 import re
 
 from flask import Flask, request, render_template, session, Response, flash
@@ -62,11 +63,16 @@ def pagination(job_name, id):
                                                    (per_page * (id - 1)) + per_page))
 
 
-@app.route('/Build_Search', methods=['GET', 'POST'])
-def index():
+@app.route('/build_search/<job_name>/<build_number>/<component_version>')
+@app.route('/build_search', methods=['GET', 'POST'])
+def index(job_name=None, build_number=None, component_version=None):
     search_form = JobSearchForm(request.form)
     if request.method == 'POST':
         job_name = search_form.data['job_name'].strip()
+        try:
+            pattern_type = re.search(r'\w*-\w*', job_name).group()
+        except AttributeError:
+            pattern_type = job_name
         build_number = search_form.data['build_number']
         component_version = search_form.data["component_version"]
 
@@ -75,7 +81,23 @@ def index():
         if fs.count() == 0:
             return render_template('404.html', title='404'), 404
         data_list = Common.collection_creation(fs)
-        return render_template("search_results.html", List=data_list)
+        return render_template("search_results.html", List=data_list,
+                               pattern_type=pattern_type, data_display="True")
+    if job_name and build_number and component_version:
+        fs = extracting_build_info(job_name=job_name, build_number=build_number,
+                                   component_version=component_version)
+        if fs.count() == 0:
+            return render_template('404.html', title='404'), 404
+        data_list = Common.collection_creation(fs)
+        test_data_map = Common.test_map_details(data_list)
+        try:
+            pattern_type = re.search(r'\w*-\w*', data_list[0]["Job-Name"]).group()
+        except AttributeError:
+            pattern_type = job_name
+
+        return render_template("search_results.html", List=data_list,
+                               pattern_type=pattern_type, data_display="False",
+                               test_data_map=test_data_map)
 
     return render_template('search.html', form=search_form)
 
@@ -91,7 +113,11 @@ def search_by_component():
         if fs.count() == 0:
             return render_template('404.html', title='404'), 404
         data_list = Common.collection_creation(fs)
-        return render_template("search_results.html", List=data_list)
+        test_data_map = Common.test_map_details(data_list)
+        if test_data_map == 500:
+            return render_template('500.html', title='500'), 500
+        return render_template("search_results.html", List=data_list,
+                               test_data_map=test_data_map)
     return render_template('component_search_by_field.html', search_form=search_form)
 
 
@@ -128,18 +154,28 @@ def upgrade_report():
                                                                    in job_detail else "unavailable"
                 common_report[data]["Snap No"] = job_detail["Snap-Version"] \
                     if "Snap-Version" in job_detail else "unavailable"
-                common_report[data]["highlighted_information"] = job_detail["highlighted_information"]\
-                    if "highlighted_information" in job_detail else "unavailable"
+                try:
+                    pattern_type = re.search(r'\w*-\w*', job_detail["Job-Name"]).group()
+                except AttributeError:
+                    pattern_type = job_detail["Job-Name"]
 
-                common_report[data]["recipient_list"] = recipient_list
+                if pattern_type in Common.get_config_value("test_map"):
+                    highlighted_data = job_detail["Validation"]["Pre_Upgrade_test_Failure"]
+                    common_report[data]["highlighted_information"] = highlighted_data
+                else:
+                    highlighted_data = job_detail["Validation"]["All_Commands_Execution_status"]
+                    common_report[data]["highlighted_information"] = \
+                        highlighted_data["highlighted_content"] \
+                        if "highlighted_content" in \
+                           highlighted_data else "unavailable"
+
                 common_report[data]["component_version"] = component_version
         if not message_body:
             common_report["body"] = "Please find the job execution details below"
         else:
             common_report["body"] = message_body
         common_report["subject"] = subject
-
-        session["recipient"] = recipient_list
+        common_report["recipient"] = recipient_list
         Common.report_preparation(common_report)
         return render_template('data_processing.html', job_type=job_type)
     return render_template('report_mail.html', form=form)
@@ -153,35 +189,31 @@ def edit_observation(pattern_type, id, count):
     record = Common.collection_creation(fs)[0]
     form = ObservationUpdate(request.form)
     if request.method == 'POST':
+        observations = ast.literal_eval(form.data["observation_data"])
         try:
-            observations = ast.literal_eval(form.data["observation_data"])
-            if type(observations) is dict:
-                for observation in observations:
-                    db_update(observation_record_key="{}".format(observation),
-                              observation_record_value="{}".format(observations[observation]))
-            record["Validation"]["All_Commands_Execution_status"] = \
-                Common.record_updater(
-                    record["Validation"]["All_Commands_Execution_status"], observations)
+            if pattern_type not in Common.get_config_value("test_map"):
+                if type(observations) is dict:
+                    for observation in observations:
+                        db_update(observation_record_key="{}".format(observation),
+                                  observation_record_value="{}".format(observations[observation]))
+                record["Validation"] = Common.record_updater(record["Validation"],
+                                                             observations)
+            else:
+                record["Validation"] = Common.record_updater(record["Validation"],
+                                                             observations)
             update_record("{}".format(id), old_record=record)
         except Exception:
-            flash("Please provide the proper dictionary format")
-            if pattern_type in ["automation-preupgrade", "automation-postupgrade"]:
-                return render_template('observation.html', form=form,
-                                       pattern_type=pattern_type, record=record)
-            else:
-                return render_template('observation.html', form=form,
-                                       pattern_type=pattern_type, record=record)
+            flash("Please provide the proper dictionary format {} of pattern {}".
+                  format(observations, pattern_type))
+            return render_template('observation.html', form=form,
+                                   pattern_type=pattern_type, record=record)
         flash("Data Submitted Successfully")
     if type(int(count)/5) is float:
         count = int(int(count)/5) + 1
     else:
         count = int(int(count) / 5)
-    if pattern_type in ["automation-preupgrade", "automation-postupgrade"]:
-        return render_template('observation.html', form=form,
-                               pattern_type=pattern_type, record=record, count=count)
-    else:
-        return render_template('observation.html', form=form,
-                               pattern_type=pattern_type, record=record, count=count)
+    return render_template('observation.html', form=form,
+                           pattern_type=pattern_type, record=record, count=count)
 
 
 @app.route('/input', methods=['GET', 'POST'])
@@ -231,7 +263,6 @@ def job_list():
 @app.route('/list_of_error/<int:id>')
 def list_of_error(id):
     """
-
     :param id:
     :return:
     """
@@ -246,8 +277,7 @@ def list_of_error(id):
 @app.route('/system_log/<id>')
 def system_log(id):
     """
-
-    :param id:
+    :param report:
     :return:
     """
     fs = accessing_data_via_id(build_id="{}".format(id))
@@ -260,7 +290,6 @@ def system_log(id):
 @app.route('/progress/<string:job_type>')
 def progress(job_type):
     """
-
     :param job_type:
     :return:
     """
@@ -268,7 +297,7 @@ def progress(job_type):
         obj = Controller()
         th1 = Thread(target=obj.run)
     else:
-        th1 = Thread(target=Common.copy_report(session['recipient']))
+        th1 = Thread(target=Common.mail_send())
     th1.start()
     return Response(Common.generate(th1), mimetype='text/event-stream')
 
@@ -276,7 +305,6 @@ def progress(job_type):
 @app.route('/update/<data>')
 def update_build_details(data):
     """
-
     :param data:
     :return:
     """

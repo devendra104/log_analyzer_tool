@@ -21,25 +21,24 @@
     <table class="t1" summary="Log Analysis Report">
       <thead>
             <tr>
-            <th rowspan="2">Index</th>
-            <th rowspan="2">Job Name</th>
-            <th rowspan="2">Build Number</th>
-            <th rowspan="2">Build Url</th>
-            <th rowspan="2">Build Status</th>
-                <th rowspan="2">Component Version</th>
-                <th rowspan="2">Snap/Build Number</th>
-                <th colspan="3">Validation</th>
-                <th rowspan="2">Build Time</th>
-                <th rowspan="2">Systems Log Analysis</th>
-                <th rowspan="2">Add Your Observation</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Job Index count">Index</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Name of jenkins job, you can search it on jenkins server">Job Name</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Number of respective jenkins job name">Build Number</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="jenkins build URL of respective job">Build Url</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Status of Build job, we can update it as per our observation">Build Status</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build release version of non GA component">Component Version</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Snap number of ongoing non GA build version">Snap/Build Number</th>
+                <th colspan="3" data-toggle="tooltip" data-placement="right" title="Validation is divided into three parts, 1: Validation Over Target Machine, 2: Validation Of Keyword Availability in Log File 3: Commands Execution Status in Jenkins Log File ">Validation</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Time of triggered jenkins job">Build Time</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="It contains logs of system during job execution, depends on users, what kind of logs they wants to collect over there(Example in satellite: we collect Satellite log, Satellite-installer log, Capsule installer log, Capsule lo,production log, proxy log, Candlepin log, messages Catlina log) ">Systems Log Analysis</th>
+                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="By using this option we can add our observation">Add Your Observation</th>
         </tr>
-            <tr>
-            <th>Validation Over Target Machine</th>
-            <th>Validation Of Keyword Availability in Log File</th>
+            <tr><th data-toggle="tooltip" data-placement="right" title="Validation over target machine: It includes the commands or checked which we executed over target machine">Validation Over Target Machine</th>
+            <th data-toggle="tooltip" data-placement="right" title="Here, we are checking few strings in jenkins logs whether it available or not, If it is not available then we ask from the developer, Did any change happens around that or not, If not then we file it as bug">Validation Of Keyword Availability in Log File</th>
                 {% if pattern_type == "automation-preupgrade" %}
-                    <th>Test Failure</th>
+                    <th data-toggle="tooltip" data-placement="right" title="It contains all the failed test cases information">Test Failure</th>
                 {% else %}
-                    <th>Commands Execution Status in Jenkins Log File</th>
+                    <th data-toggle="tooltip" data-placement="right" title="Here, we check all the commands execution status, We are publishing only warning, alert or failure in this column">Commands Execution Status in Jenkins Log File</th>
                 {% endif %}
         </tr>
       </thead>
@@ -81,7 +80,7 @@
                             {%endfor%}
                             {%endfor%}
                         {%else%}
-                            {%if "highlited_information" == command %}
+                            {%if "highlighted_content" == command %}
                                 <p></p>
                                 <b>{{command}}:</b><br>
                                 {%for information in comment["Validation"]["All_Commands_Execution_status"][command] %}
@@ -89,8 +88,10 @@
                                 {%endfor%}
                             {%else%}
                             <p></p>
-                            <b>{{command}}:</b><br><font size="2" color="blue">{{comment["Validation"]
-                            ["All_Commands_Execution_status"][command]}}</font><br>
+                                {% if comment["Validation"]["All_Commands_Execution_status"][command]|length %}
+                                    <b>{{command}}:</b><br><font size="2" color="blue">{{comment["Validation"]
+                                    ["All_Commands_Execution_status"][command]}}</font><br>
+                                {%endif%}
                             {%endif%}
                         {%endif%}
                     {%endfor%} </td>

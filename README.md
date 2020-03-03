@@ -1,15 +1,16 @@
 # Log Analyzer Tool
 
-Log Analyzer tool, Analyze the build log using pre-defined log parser and keep the analysis data in such a manner that helps further analysis. The record stores in the collection base database and will be available always to analyze the stability of the job.
+Log Analyzer tool, Analyze the build log using pre-defined log parser and keep the analysis data in such a manner that helps further analysis. 
+The record stores in the collection base database and will be available always to analyze the stability of the job.
 
 We provide the functionality to update the observation, and keeping all these observations in a separate database so whenever a new analysis trigger
-we check the error, whether it occurs in the past or not at run time, If it occurred in the past then we update the record at the same time.
+we check the error, whether it occurs in the past or not at run time, If it occurred in the past then it update the record during upload time.
 
 The purpose of this tool to reduce the manual effort, maintain the record of all possible suspicious messages and their observation in a database
 which will help us in the future to compare the data.
 
-As we all know, It is very hard to memorize all the suspicious messages and observations, gradually these things get starts to disappear and after few months we don't know what this message means,
-Is it kind of bug or something expected, In this case, this tool will be very helpful.
+As we all know, It is very hard to memorize all the suspicious messages and observations, gradually the observations get starts to disappear and after few months we don't know what this message means,
+Is it kind of bug or something expected, At this case, this tool is very useful.
 
 The landing page of the log_analyzer tool is "Log Analyzer Dashboard", and it has divided into the below-mentioned options.
 
@@ -31,12 +32,12 @@ Click on any record we get the analysis data and if you any observation then cli
 
 ![picture](dashboard/static/img/analysis_report.png)
 
-To search the record click on Build Search where we provide two option
+To search the record click on Build Search where we provide two options,
 
 ![picture](dashboard/static/img/search_menu_dashboard.png)
 
    **1:** The first one for search data via field(like job_name, build number, build status, component version and their snap version).
-    
+   
    ![picture](dashboard/static/img/search_by_field.png)
  
    **2:** The second one use to search a very specific job by providing the name of job, build number and component version.
@@ -47,6 +48,10 @@ To check the all past error and the observation click on Error Collection and Th
 
 ![picture](dashboard/static/img/error_collection_and_observation.png)
 
+The last option is for build the analysis report, The purpose of this option is to create the analysis report and share it with the respective team memeber.
+
+![picture](dashboard/static/img/build_analysis_report.png)
+ 
 
 **Pre-requisite:**
 
@@ -81,7 +86,7 @@ To check the all past error and the observation click on Error Collection and Th
         highlited_upgrade_content: ""
 
    **3:** If you wants to update the machine details search regex from build log then update it in machine_detail.sample 
-
+   
 **How to run:**
 
    **1:** Create a virtual environment 
@@ -103,3 +108,67 @@ To check the all past error and the observation click on Error Collection and Th
          * Running on http://0.0.0.0:5001/ (Press CTRL+C to quit)
    
 
+**How to Update the Observation**
+
+   **1:** The  Observation data should be proper dictionary and for now we are not supporting character inside observation keys like (.\)) 
+    
+        {"Time taken by task Repository Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server sync": "BZ#1787282(not used workaround for 6.6)}
+        
+**Helper**
+
+   **1:** We have used tooltip to provide the help to understand the meaning  for both input form and output results.
+        ![picture](dashboard/static/img/tooltip.png)
+    
+**Orchestrate of Log Analyzer tool on container**
+    
+   **1:** Installer docker on linux machine
+   
+   **2:** Clone the log_analyzer repository on docker server.
+   
+   **3:** Check the environment_setup.yaml file and configured it according to your requirement
+   
+          config:
+            data_location: "downloaded_data"
+            report_location: "report"
+            jenkins_username: "XYZ"
+            jenkins_password: "XYZ"
+            database_name: "analysis_record_db"
+            observation_db_name: "observation_record_db"
+            mongodb_container: "mongodb"
+            build_server_hostname: "build_system.redhat.com"
+            mail_script_name: "mail_content.sh"
+            mail_script_location: "/root"
+            mongodb_port: 27017
+            build_machine_username: "root"
+            build_machine_password:
+            - "password1"
+            - "password2"
+            - "password3"
+            jenkins_base_url: "https://XYZ-jenkins.abc.com"
+            analysis_input_file: "build.xls"
+            analysis_output_file: "report.xls"
+            unsupported_path:
+            - "/home"
+            - "/usr"
+            - "/bin"
+            - "/temp"
+            - "/"
+            test_map:
+            - "automation-preupgrade"
+            - "automation-postupgrade"    
+             
+   **3:** Pull the mentioned version of mongodb like below.
+            
+        docker pull mongo:4.2.0
+        
+   **4** Create the image of log analyzer tool by executing below command
+     
+        docker build --tag dashboard_web --network=host .
+        
+   **5** After that execute the docker-compose command
+   
+        docker-compose up -d
+   **6** mail server should be configured on host machine and copy the "mail_content.sh" script from repository to root directory.
+   
+        cp log_analyzer_tool/dashboard/mail_content.sh /root/mail_content.sh  
+   

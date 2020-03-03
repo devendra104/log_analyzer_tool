@@ -2,13 +2,12 @@ import os
 import ast
 import re
 import json
+import pickle
 import xlwt
 import time
 import yaml
 import paramiko
-import shutil
 from functools import reduce
-from pymongo import MongoClient
 
 
 class Common:
@@ -128,7 +127,9 @@ class Common:
         This method use to prepare the log based on users request.
         :param dict data:
         """
-        fd = open("mail_report.html", "w")
+        report_file_path = '{}/{}'.format(os.path.abspath('.'),
+                                          Common.get_config_value("report_location"))
+        fd = open("{}/mail_report.html".format(report_file_path), "w")
         fd.write('''
             <html>
                 <head>
@@ -169,27 +170,48 @@ class Common:
                         <thead>
                             <tr>
                                 <th> Job Category </th>
-                                <th> Job Name  </th>
                                 <th> Job Status </th>
-                                <th> Highlighted information</th>
+                                <th> Highlighted information/Test Failure</th>
                                 <th> Job URL </th>
                                 <th> Bugzilla </th>
                                 <th> Snap No </th>
                                 <th> Component Version </th>
+                                <th> Warning And Alert Details </th>
                                 </tr></thead> '''.format(data["body"]))
         data.pop('body')
+        report_file_path = '{}/{}'.format(os.path.abspath('.'),
+                                          Common.get_config_value("report_location"))
+
+        if os.path.isfile("{}/{}".format(report_file_path, "subject")):
+            os.remove("{}/{}".format(report_file_path, "subject"))
+        if os.path.isfile("{}/{}".format(report_file_path, "recipient")):
+            os.remove("{}/{}".format(report_file_path, "recipient"))
+        with open("{}/{}".format(report_file_path, "subject"), "wb") as handler:
+            pickle.dump(data["subject"], handler)
         data.pop("subject")
+
+        with open("{}/{}".format(report_file_path, "recipient"), "wb") as handler:
+            pickle.dump(data["recipient"], handler)
+        data.pop('recipient')
+
         for _ in data:
-            fd.write('<tr><td>{}</td><td>{}</td><td>{}</td>'.format(_, data[_]['job_name'], data[_]['Build_Status']))
+            fd.write('<tr><td>{}</td><td>{}</td>'.format(_, data[_]['Build_Status']))
             fd.write("<td>")
             for content in data[_]["highlighted_information"]:
-                if content.strip():
-                    fd.write("<li>{}</li>".format(content))
+                if (content.lstrip()).rstrip():
+                    fd.write("<li align=\"left\">{}</li>".format((content.lstrip()).rstrip()))
             fd.write("</td>")
+            fd.write("<td><a href={}>Job Link</a></td>".format(data[_]['Build Url']))
+            if data[_]['bugzilla'].lstrip().rstrip():
+                fd.write("<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={}>Bugzilla_link</a></td>".format(data[_]['bugzilla']))
+            else:
+                fd.write("<td>{}</a></td>".format(data[_]['bugzilla']))
 
-            fd.write("<td><a href={}>Job Link</a></td><td>{}</td><td>{}</td><td>{}</td></tr>"
-                     .format(data[_]['Build Url'], data[_]['bugzilla'],
-                             data[_]['Snap No'], data[_]['component_version']))
+            fd.write("<td>{}</td><td>{}</td>".format(data[_]['Snap No'],
+                                                          data[_]['component_version']))
+            fd.write("<td><a href=http://{}:5001/build_search/{}/{}/{}>Other details</a></td></tr>"
+                     .format(Common.get_config_value("build_server_hostname"), data[_]['job_name'],
+                             data[_]['build_number'], data[_]['component_version']))
 
         fd.write('''<tfoot> 
                             <tr> 
@@ -199,6 +221,8 @@ class Common:
                 </table>
                 
             </body>
+            <p><font color="black">Note: For more details</font></p>
+            <form action="https://mojo.redhat.com/docs/DOC-1207508"><input type="submit" value="Mojo Page" /></form>
             <p><font color="black">Thanks</font></p>
             <font color="black">Upgrade Team</font>
         </html>
@@ -222,22 +246,24 @@ class Common:
                     yield "data:" + str(100) + "\n\n"
 
     @staticmethod
-    def copy_report(recipients):
+    def mail_send():
         """
         This method use to copy the report to the mail server.
-        :param recipients:
-        :return:
         """
-        file_path = "mail_report.html"
-        if os.path.isfile("{}".format(file_path)):
-            commands = "scp -r {} root@zyz.com:~"\
-                .format(file_path)
-            result = os.popen("{}".format(commands))
-            time.sleep(2)
-            if result:
-                for recipient in recipients:
-                    os.popen("ssh root@xyz.com sh test.sh {}"
-                             .format(recipient))
+        report_file_path = '{}/{}'.format(os.path.abspath('.'),
+                                          Common.get_config_value("report_location"))
+        with open("{}/{}".format(report_file_path, "subject"), "rb") as subject_handler:
+            subject = pickle.load(subject_handler)
+        with open("{}/{}".format(report_file_path, "recipient"), "rb") as recipient_handler:
+            recipient = pickle.load(recipient_handler)
+        report_file_path = '{}/{}'.format(os.path.abspath('.'),
+                                          Common.get_config_value("report_location"))
+        if os.path.isfile("{}/mail_report.html".format(report_file_path)):
+            os.popen("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{} {}/{} {} {}".\
+                     format(Common.get_config_value("build_server_hostname"),
+                            Common.get_config_value("mail_script_location"),
+                            Common.get_config_value("mail_script_name"),
+                            subject, recipient))
 
     @staticmethod
     def environment_preparation():
@@ -250,8 +276,12 @@ class Common:
                                             Common.get_config_value("data_location"))
         if '{}'.format(Common.get_config_value("report_location")):
             if os.path.isdir("{}".format(report_file_path)):
-                shutil.rmtree("{}".format(report_file_path))
-            os.mkdir("{}".format(report_file_path))
+                for data_path, directory_list, file_list in \
+                        os.walk("{}".format(report_file_path)):
+                    [os.remove("{}/{}".format(report_file_path, file))
+                     for file in file_list]
+            else:
+                os.mkdir("{}".format(report_file_path))
             workbook = xlwt.Workbook()
             workbook.add_sheet('test1')
             workbook.save("{}/report.xls".format(report_file_path))
@@ -345,13 +375,11 @@ class Common:
                             if not re.search(observations[observation], "{}".format(records[record])):
                                 records[record] = "{}".format(records[record]) + " --> " + \
                                                 observations[observation]
-
         return records
 
     @staticmethod
     def json_validator(form_object):
         """
-
         :param form_object:
         :return:
         """
@@ -373,7 +401,7 @@ class Common:
             for job_no in range(len(job_category)):
                 common_report[job_category[job_no]] = {"job_name": job_name[job_no],
                                                        "build_number": build_number[job_no],
-                                                       "bugzilla": "No Bugzilla"}
+                                                       "bugzilla": ""}
         else:
             for job_no in range(len(job_category)):
                 try:
@@ -396,3 +424,16 @@ class Common:
                 except IndexError:
                     common_report[job_category[job_no]]["bugzilla"] = bugzilla[temp]
         return common_report
+
+    @staticmethod
+    def test_map_details(data_list):
+        test_data_map = list()
+        test_map = Common.get_config_value("test_map")
+        for job_name in data_list:
+            try:
+                job_prefix = re.search(r'\w*-\w*', job_name["Job-Name"]).group()
+            except Exception:
+                job_prefix = job_name["Job-Name"]
+            if job_prefix in test_map:
+                test_data_map.append(job_name["Job-Name"])
+        return test_data_map

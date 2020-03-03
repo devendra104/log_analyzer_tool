@@ -13,16 +13,16 @@
     <table class="t1" summary="Enter your observation">
       <thead>
             <tr>
-            <th rowspan="2">Job Name</th>
-            <th rowspan="2">Build Status</th>
-                <th colspan="1">Validation</th>
-             <th rowspan="2">Enter your observation</th>
+                <th rowspan="2" align="center" data-toggle="tooltip" data-placement="right" title="Name of jenkins job, you can search it on jenkins server">Job Name</th>
+                <th rowspan="2" align="center" data-toggle="tooltip" data-placement="right" title="Status of Build job, we can update it as per our observation">Build Status</th>
+                <th colspan="1" align="center" data-toggle="tooltip" data-placement="right" title="Validation is divided into one part,  1: Commands Execution Status in Jenkins Log File">Validation</th>
+             <th rowspan="2" align="center" data-toggle="tooltip" data-placement="right" title="Enter your observation, The provided observation would be in dictionary format example: {'WARNING: Excluding 12196 updates due to foreman-protector': 'This is expected error BZ#122333'}">Enter your observation</th>
             </tr>
             <tr>
                 {% if pattern_type == "automation-preupgrade" %}
-                    <th>Test Failure</th>
+                    <th align="center" data-toggle="tooltip" data-placement="right" title="It contains all the failed test cases information">Test Failure</th>
                 {% else %}
-                    <th>Commands Execution Status in Jenkins Log File</th>
+                    <th align="center" data-toggle="tooltip" data-placement="right" title="Here, we check all the commands execution status, We are publishing only warning, alert or failure in this column">Commands Execution Status in Jenkins Log File</th>
                 {% endif %}
             </tr>
       </thead>
@@ -30,38 +30,43 @@
         <tr><td> {{record["Job-Name"]}} </td>
             <td>{{record["Build-Status"]}} </td>
                 {% if pattern_type == "automation-preupgrade" or pattern_type == "automation-postupgrade" %}
-            <td><p><b>Total Executed Test Case:</b> {{record["Validation"]["Total Test Executed"][0]}}</p>
-                <p><b>Failed {{pattern_type}} Test Cases:</b></p>
+            <td><div align="left"><b>Total Executed Test Case:</b> {{record["Validation"]["Total Test Executed"][0]}}</div>
+                <div align="left"><b>Failed {{pattern_type}} Test Cases:</b>
                     {% for test_case in record["Validation"]["Pre_Upgrade_test_Failure"] %}
                 {{test_case}}<br>
                      {% endfor %}
+                    </div>
             </td>
                 {%else%}
             <td>{% for command in record["Validation"]["All_Commands_Execution_status"]%}
                         {% if "Pattern_Pattern_match" == command %}
                             {% for i in record["Validation"]["All_Commands_Execution_status"][command]%}
-                            <p></p>
-                            <b>{{i}}:</b><br>
-                            {%for j in record["Validation"]["All_Commands_Execution_status"][command][i] %}
-                        <font size="2" color="blue">{{j}}</font><br>
-                            {%endfor%}
+                                 <div align="left"><b>{{i}}:</b></div><br>
+                                 <div align="left">
+                                    {%for j in record["Validation"]["All_Commands_Execution_status"][command][i] %}
+                                        <font size="2" color="blue">{{j}}</font><br>
+                                    {%endfor%}
+                                 </div>
                             {%endfor%}
                         {%else%}
-                            {%if "highlited_information" == command %}
-                                <p></p>
-                                <b>{{command}}:</b><br>
+                            {%if "highlighted_content" == command %}
+                                <div align="left"><b>{{command}}:</b></div><br>
+                                <div align="left">
                                 {%for information in record["Validation"]["All_Commands_Execution_status"][command] %}
-                                <font size="2" color="blue"> {{information}} </font><br>
+                                    <font size="2" color="blue"> {{information}} </font><br>
                                 {%endfor%}
+                                </div>
                             {%else%}
-                            <p></p>
-                            <b>{{command}}:</b><br><font size="2" color="blue">{{record["Validation"]
-                            ["All_Commands_Execution_status"][command]}}</font><br>
+                                {% if record["Validation"]["All_Commands_Execution_status"][command]|length %}
+                                    <div align="left"><b>{{command}}:</b></div><br>
+                                    <div align="left"><font size="2" color="blue">{{record["Validation"]["All_Commands_Execution_status"][command]}}</font>
+                                    </div><br>
+                                {%endif%}
                             {%endif%}
                         {%endif%}
                     {%endfor%} </td>
             {%endif%}
-            <td>{{form.observation_data}} </td>
+            <td>{{form.observation_data}}</td>
         </tr>
       </tbody>
       <tfoot>

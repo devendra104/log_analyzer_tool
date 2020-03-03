@@ -41,7 +41,7 @@ jenkins_job_details:
     check_on_build_environment: ""
     test_execution_record:
       test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
-      total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
+      total_test_executed: "awk '/- Started tearDownClass/ {count++} END {print count}'"
     pattern_to_pattern_filter: ""
     keyword_availability:
       - "Started tearDownClass"
@@ -67,7 +67,7 @@ jenkins_job_details:
     check_on_build_environment: ""
     test_execution_record:
       test_failure: "awk '/: tests./{{print}}'|awk '/FAILED/ {{print $NF}}'|awk '{print $NF}'"
-      total_test_executed: "awk '/Started tearDownClass/ {count++} END {print count}'"
+      total_test_executed: "awk '/- Started tearDownClass/ {count++} END {print count}'"
     pattern_to_pattern_filter: ""
     keyword_availability:
       - "Started tearDownClass"
