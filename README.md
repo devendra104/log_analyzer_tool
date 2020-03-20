@@ -1,16 +1,15 @@
 # Log Analyzer Tool
 
 Log Analyzer tool, Analyze the build log using pre-defined log parser and keep the analysis data in such a manner that helps further analysis. 
-The record stores in the collection base database and will be available always to analyze the stability of the job.
+The record stores in the collection base database and will be available for future job analysis.
 
 We provide the functionality to update the observation, and keeping all these observations in a separate database so whenever a new analysis trigger
-we check the error, whether it occurs in the past or not at run time, If it occurred in the past then it update the record during upload time.
+we check the errors and update them with existing observations.
 
-The purpose of this tool to reduce the manual effort, maintain the record of all possible suspicious messages and their observation in a database
-which will help us in the future to compare the data.
+The purpose of this tool to reduce the manual effort, maintain the record of all possible suspicious messages and their observation in a database that will help us in the future to compare the record.
 
 As we all know, It is very hard to memorize all the suspicious messages and observations, gradually the observations get starts to disappear and after few months we don't know what this message means,
-Is it kind of bug or something expected, At this case, this tool is very useful.
+Is it kind of bug or something expected, by using this tool we can handle these problems.
 
 The landing page of the log_analyzer tool is "Log Analyzer Dashboard", and it has divided into the below-mentioned options.
 
@@ -20,15 +19,15 @@ To do the analysis we click on Trigger Log Analyzer and it opens the "Log Analys
 
 ![picture](dashboard/static/img/analysis_menu.png)
 
-click on the submit button and wait for the "Analysis" to be completed.
+We click on the submit button and wait for the "Analysis" to be completed.
 
 ![picture](dashboard/static/img/analysis.png)
 
-To check the current record or any past analyzed record click on the build history and it will help you get the analyzed record
+To check the current record or any past analyzed record click on the build history and it will help you to get the analyzed record
 
 ![picture](dashboard/static/img/Job_type.png)
 
-Click on any record we get the analysis data and if you any observation then click on data update link you get other page where you can submit your observation. 
+Click on any record we get the analysis data and if you have any observation then click on the data update link you get other page where you can submit your observation. 
 
 ![picture](dashboard/static/img/analysis_report.png)
 
@@ -44,11 +43,11 @@ To search the record click on Build Search where we provide two options,
 
    ![picture](dashboard/static/img/search_a_specific_record.png)
 
-To check the all past error and the observation click on Error Collection and Their Observation button, here we keep all the past observation.
+To check the all past error and the observations click on "Error Collection and Their Observation" button, here we keep all the past observation.
 
 ![picture](dashboard/static/img/error_collection_and_observation.png)
 
-The last option is for build the analysis report, The purpose of this option is to create the analysis report and share it with the respective team memeber.
+The last option is for build the analysis report, The purpose of this option is to create the analysis report and share it with the respective team member.
 
 ![picture](dashboard/static/img/build_analysis_report.png)
  
@@ -85,7 +84,12 @@ The last option is for build the analysis report, The purpose of this option is 
           pattern2: "PLAY RECAP *"
         highlited_upgrade_content: ""
 
-   **3:** If you wants to update the machine details search regex from build log then update it in machine_detail.sample 
+   **3:** If you wants to do the analysis on the build machine, then you have to update the regex that fetched the build machine details of your job in machine_detail.sample. 
+   
+    machine_detail:
+        satellite6_db_upgrade_migrate: "awk '/The registered system name/ {print $NF}'"
+        upgrade-to-<component-version>-rhel7: "awk '/The registered system name/ {print $NF}'"
+
    
 **How to run:**
 
@@ -116,15 +120,13 @@ The last option is for build the analysis report, The purpose of this option is 
         
 **Helper**
 
-   **1:** We have used tooltip to provide the help to understand the meaning  for both input form and output results.
+   **1:** We have used tooltip to provide the help to understand the meaning of options whether it is input form or output results.
         ![picture](dashboard/static/img/tooltip.png)
     
-**Orchestrate of Log Analyzer tool on container**
+**Deployment on Docker container**
     
    **1:** Installer docker on linux machine
-   
    **2:** Clone the log_analyzer repository on docker server.
-   
    **3:** Check the environment_setup.yaml file and configured it according to your requirement
    
           config:
