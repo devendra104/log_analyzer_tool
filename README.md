@@ -125,9 +125,11 @@ The last option is for build the analysis report, The purpose of this option is 
     
 **Deployment on Docker container**
     
-   **1:** Installer docker on linux machine
+   **1:** Install docker on linux machine.
+   
    **2:** Clone the log_analyzer repository on docker server.
-   **3:** Check the environment_setup.yaml file and configured it according to your requirement
+   
+   **3:** Check the environment_setup.yaml file and configured it according to your requirement.
    
           config:
             data_location: "downloaded_data"
@@ -159,18 +161,18 @@ The last option is for build the analysis report, The purpose of this option is 
             - "automation-preupgrade"
             - "automation-postupgrade"    
              
-   **3:** Pull the mentioned version of mongodb like below.
+   **4:** Pull the mentioned version of mongodb like below.
             
         docker pull mongo:4.2.0
         
-   **4** Create the image of log analyzer tool by executing below command
+   **5** Create the image of log analyzer tool by executing below command
      
         docker build --tag dashboard_web --network=host .
         
-   **5** After that execute the docker-compose command
+   **6** After that execute the docker-compose command
    
         docker-compose up -d
-   **6** mail server should be configured on host machine and copy the "mail_content.sh" script from repository to root directory.
+   **7** mail server should be configured on host machine and copy the "mail_content.sh" script from repository to root directory.
    
         cp log_analyzer_tool/dashboard/mail_content.sh /root/mail_content.sh  
    

@@ -154,10 +154,15 @@ class Controller:
         observated_data_object = accessing_observation_db()
         if observated_data_object.count() >= 1:
             observated_data = Common.collection_creation(observated_data_object)
-            for observated_content in observated_data:
-                    observated_content.pop('_id')
-                    analysis_result["Validation"] = Common.\
-                        record_updater(analysis_result["Validation"], observated_content)
+            try:
+                for observated_content in observated_data:
+                        observated_content.pop('_id')
+                        analysis_result["Validation"] = Common.\
+                            record_updater(analysis_result["Validation"], observated_content)
+            except Exception:
+                # TODO
+                pass
+
         db_update(analysis_result)
         DataUpdater.test_result_update(self.prop_obj.sheets_number[self.prop_obj.sheets],
                                        self.prop_obj.rows_no, xls_report_content)

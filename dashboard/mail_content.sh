@@ -9,6 +9,6 @@ mail_report(){
 			subject+=($i)
 		fi
 	done
-	cat /root/log_analyzer_tool/dashboard/report/mail_report.html | mail -r "XYZ<XYZ@gmail.com>" -s "$(echo -e "${subject[@]}\nContent-Type: text/html")" "${mail_id[@]}"
+	cat /root/log_analyzer_tool/dashboard/report/mail_report.html | mail -r "devendra104<devendra104@gmail.com>" -s "$(echo -e "${subject[@]} \nContent-Type: text/html")" "${mail_id[@]}"
 }
 mail_report $@

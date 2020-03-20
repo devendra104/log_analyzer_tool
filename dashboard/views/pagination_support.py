@@ -196,12 +196,14 @@ def edit_observation(pattern_type, id, count):
                     for observation in observations:
                         db_update(observation_record_key="{}".format(observation),
                                   observation_record_value="{}".format(observations[observation]))
-                record["Validation"] = Common.record_updater(record["Validation"],
-                                                             observations)
+                record["Validation"] = \
+                    Common.record_updater(record["Validation"], observations)
+                update_record("{}".format(id), old_record=record)
             else:
-                record["Validation"] = Common.record_updater(record["Validation"],
-                                                             observations)
-            update_record("{}".format(id), old_record=record)
+                failed_test_details = {"test_details": record["Validation"]["Pre_Upgrade_test_Failure"]}
+                updated_data = Common.record_updater(failed_test_details, observations)
+                record["Validation"]["Pre_Upgrade_test_Failure"] = updated_data["test_details"]
+                update_record("{}".format(id), old_record=record)
         except Exception:
             flash("Please provide the proper dictionary format {} of pattern {}".
                   format(observations, pattern_type))

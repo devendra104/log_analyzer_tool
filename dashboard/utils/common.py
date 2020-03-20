@@ -21,8 +21,8 @@ class Common:
         This method use to convert the validation_parameter yaml file in to dictionary.
         :return: validation_param
         """
-        validation_param = ast.literal_eval\
-            (json.dumps(yaml.load(open("{}/{}".\
+        validation_param = ast.literal_eval \
+            (json.dumps(yaml.load(open("{}/{}". \
                                        format(Common.config_path, yaml_file_name)),
                                   Loader=yaml.FullLoader)[file_header]))
         return validation_param
@@ -131,53 +131,44 @@ class Common:
                                           Common.get_config_value("report_location"))
         fd = open("{}/mail_report.html".format(report_file_path), "w")
         fd.write('''
-            <html>
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-                        <style>
-                            table {
-                                font-family: arial, sans-serif;
-                                border-collapse: collapse;
-                                width: 100%;
-                            }
-        
-                            th {
-                                border: 1px solid #000000;
-                                text-align: center;
-                                padding: 8px;
-                                background-color: #7598bf;
-                                color:#000000
-        
-                            }
-                            td {
-                                border: 1px solid #000000;
-                                text-align: center;
-                                padding: 8px;
-                                background-color: #dbe5f0;
-                                color:#000000
-        
-                            }
-                        </style>
-                    </head>
-        
-                <body>
-                    <p><font color="black"> Hi All </font></p>
-                    ''')
+                <html>
+                    <head>
+                        <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+                            <style>
+                                table {
+                                    font-family: arial, sans-serif;
+                                    border-collapse: collapse;
+                                    width: 100%;
+                                }
+
+                                th {
+                                    border: 1px solid #000000;
+                                    text-align: center;
+                                    padding: 8px;
+                                }
+                                td {
+                                    border: 1px solid #000000;
+                                    text-align: center;
+                                    padding: 8px;
+                                }
+                            </style>
+                        </head>
+
+                    <body>
+                        <p><font color="black"> Hi All </font></p>
+                        ''')
         fd.write('''
-            <p><font color="black">{}
-                </font></p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th> Job Category </th>
-                                <th> Job Status </th>
-                                <th> Highlighted information/Test Failure</th>
-                                <th> Job URL </th>
-                                <th> Bugzilla </th>
-                                <th> Snap No </th>
-                                <th> Component Version </th>
-                                <th> Warning And Alert Details </th>
-                                </tr></thead> '''.format(data["body"]))
+                <p><font color="black">{}
+                    </font></p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th> Job Category </th>
+                                    <th> Highlighted information/Test Failure</th>
+                                    <th> Job URL </th>
+                                    <th> Bugzilla </th>
+                                    <th> Job Status </th>
+                                    </tr></thead> '''.format(data["body"]))
         data.pop('body')
         report_file_path = '{}/{}'.format(os.path.abspath('.'),
                                           Common.get_config_value("report_location"))
@@ -195,38 +186,41 @@ class Common:
         data.pop('recipient')
 
         for _ in data:
-            fd.write('<tr><td>{}</td><td>{}</td>'.format(_, data[_]['Build_Status']))
+            fd.write('<tr><td>{}</td>'.format(_, data[_]))
             fd.write("<td>")
             for content in data[_]["highlighted_information"]:
                 if (content.lstrip()).rstrip():
-                    fd.write("<li align=\"left\">{}</li>".format((content.lstrip()).rstrip()))
+                    if re.search(r'tests.', "{}".format(content)):
+                        fd.write(
+                            "<font color=red><li align=\"left\">{}</li></font>".format(
+                                (content.lstrip()).rstrip()))
+                    else:
+                        fd.write(
+                            "<li align=\"left\">{}</li>".format(
+                                (content.lstrip()).rstrip()))
             fd.write("</td>")
             fd.write("<td><a href={}>Job Link</a></td>".format(data[_]['Build Url']))
             if data[_]['bugzilla'].lstrip().rstrip():
-                fd.write("<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={}>Bugzilla_link</a></td>".format(data[_]['bugzilla']))
+                fd.write(
+                    "<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={}>Bugzilla_link</a></td>".format(
+                        data[_]['bugzilla']))
             else:
                 fd.write("<td>{}</a></td>".format(data[_]['bugzilla']))
-
-            fd.write("<td>{}</td><td>{}</td>".format(data[_]['Snap No'],
-                                                          data[_]['component_version']))
-            fd.write("<td><a href=http://{}:5001/build_search/{}/{}/{}>Other details</a></td></tr>"
-                     .format(Common.get_config_value("build_server_hostname"), data[_]['job_name'],
-                             data[_]['build_number'], data[_]['component_version']))
-
-        fd.write('''<tfoot> 
-                            <tr> 
-                                <th colspan="10"> redhat.com </th> 
-                            </tr> 
-                    </tfoot>
-                </table>
-                
-            </body>
-            <p><font color="black">Note: For more details</font></p>
-            <form action="https://mojo.redhat.com/docs/DOC-1207508"><input type="submit" value="Mojo Page" /></form>
-            <p><font color="black">Thanks</font></p>
-            <font color="black">Upgrade Team</font>
-        </html>
-        ''')
+            if data[_]['Build_Status'] == "SUCCESS":
+                color = "green"
+                fd.write("<td><font color={}>PASSED</font></td>".format(color))
+            else:
+                color = "red"
+                fd.write("<td><font color={}>{}</font></td>".format(color, data[_][
+                    'Build_Status']))
+        fd.write('''
+        </table>
+        </body>
+        <p><font color="black">Note: For more details</font>
+        <form action="https://github.com/devendra104/log_analyzer_tool"><input type="submit" value="Helper Page" /></form></p>
+        <p><font color="black">Thanks</font><br>
+        <font color="black">Devendra</font><p>
+        </html>''')
         fd.close()
 
     @staticmethod
@@ -254,16 +248,18 @@ class Common:
                                           Common.get_config_value("report_location"))
         with open("{}/{}".format(report_file_path, "subject"), "rb") as subject_handler:
             subject = pickle.load(subject_handler)
-        with open("{}/{}".format(report_file_path, "recipient"), "rb") as recipient_handler:
+        with open("{}/{}".format(report_file_path, "recipient"),
+                  "rb") as recipient_handler:
             recipient = pickle.load(recipient_handler)
         report_file_path = '{}/{}'.format(os.path.abspath('.'),
                                           Common.get_config_value("report_location"))
         if os.path.isfile("{}/mail_report.html".format(report_file_path)):
-            os.popen("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{} {}/{} {} {}".\
-                     format(Common.get_config_value("build_server_hostname"),
-                            Common.get_config_value("mail_script_location"),
-                            Common.get_config_value("mail_script_name"),
-                            subject, recipient))
+            os.popen(
+                "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{} {}/{} {} {}". \
+                format(Common.get_config_value("build_server_hostname"),
+                       Common.get_config_value("mail_script_location"),
+                       Common.get_config_value("mail_script_name"),
+                       subject, recipient))
 
     @staticmethod
     def environment_preparation():
@@ -285,7 +281,7 @@ class Common:
             workbook = xlwt.Workbook()
             workbook.add_sheet('test1')
             workbook.save("{}/report.xls".format(report_file_path))
-        if '{}'.format(Common.get_config_value("data_location"))\
+        if '{}'.format(Common.get_config_value("data_location")) \
                 not in Common.get_config_value("unsupported_path"):
             try:
                 if os.path.isdir("{}".format(data_location_path)):
@@ -308,11 +304,13 @@ class Common:
         it would be like 6.0, 6.5 etc
         """
         version_update_list = {"validation_parameter.sample": "validation_parameter.yaml"
-                               , "machine_detail.sample": "machine_detail.yaml"}
+            , "machine_detail.sample": "machine_detail.yaml"}
         command = "sed -i 's/<component-version>/{}/'".format(component_version)
         for tmp_file in version_update_list:
-            if os.path.isfile("{}/{}".format(Common.config_path, version_update_list[tmp_file])):
-                os.remove("{}/{}".format(Common.config_path, version_update_list[tmp_file]))
+            if os.path.isfile(
+                    "{}/{}".format(Common.config_path, version_update_list[tmp_file])):
+                os.remove(
+                    "{}/{}".format(Common.config_path, version_update_list[tmp_file]))
             status = os.popen("cp {}/{} {}/{}".format(Common.config_path, tmp_file,
                                                       Common.config_path,
                                                       version_update_list[tmp_file]))
@@ -332,7 +330,8 @@ class Common:
         :return: ssh_object, bool value
         """
         try:
-            ssh_object.connect("{}".format(hostname), username=username, password=password)
+            ssh_object.connect("{}".format(hostname), username=username,
+                               password=password)
             return ssh_object
         except paramiko.ssh_exception.AuthenticationException:
             return False
@@ -358,23 +357,35 @@ class Common:
                 for list_record in records[record]:
                     for observation in observations:
                         if observation != "_id":
-                            if re.search(observation, "{}".format(list_record)):
-                                if not re.search(observations[observation],
-                                                 "{}".format(records[record])):
-                                    list_records.append("{}".format(list_record) + " --> " +
-                                                        observations[observation])
+                            try:
+                                if re.search(observation, "{}".format(list_record)):
+                                    if not re.search(observations[observation],
+                                                     "{}".format(records[record])):
+                                        if not re.search("-->", "{}".format(list_record)):
+                                            list_records.append(
+                                                "{}".format(list_record) + " --> " +
+                                                observations[observation])
+                                        else:
+                                            list_records.append(list_record)
+                                    else:
+                                        list_records.append(list_record)
                                 else:
                                     list_records.append(list_record)
-                            else:
-                                list_records.append(list_record)
+                            except Exception:
+                                pass
                 records[record] = list_records
             else:
                 for observation in observations:
                     if observation != "_id":
-                        if re.search(observation, "{}".format(records[record])):
-                            if not re.search(observations[observation], "{}".format(records[record])):
-                                records[record] = "{}".format(records[record]) + " --> " + \
-                                                observations[observation]
+                        try:
+                            if re.search(observation, "{}".format(records[record])):
+                                if not re.search(observations[observation],
+                                                 "{}".format(records[record])):
+                                    records[record] = "{}".format(
+                                        records[record]) + " --> " + \
+                                                      observations[observation]
+                        except Exception:
+                            pass
         return records
 
     @staticmethod
@@ -395,12 +406,14 @@ class Common:
         if len(job_category) == len(job_name) == len(bugzilla):
             for job_no in range(len(job_category)):
                 common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[job_no],
+                                                       "build_number": build_number[
+                                                           job_no],
                                                        "bugzilla": bugzilla[job_no]}
         elif len(bugzilla) == 0 and (len(job_category) == len(job_name)):
             for job_no in range(len(job_category)):
                 common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[job_no],
+                                                       "build_number": build_number[
+                                                           job_no],
                                                        "bugzilla": ""}
         else:
             for job_no in range(len(job_category)):
@@ -412,10 +425,12 @@ class Common:
 
             for job_no in range(len(job_category)):
                 try:
-                    common_report[job_category[job_no]]["build_number"] = build_number[job_no]
+                    common_report[job_category[job_no]]["build_number"] = build_number[
+                        job_no]
                     temp = job_no
                 except IndexError:
-                    common_report[job_category[job_no]]["build_number"] = build_number[temp]
+                    common_report[job_category[job_no]]["build_number"] = build_number[
+                        temp]
 
             for job_no in range(len(job_category)):
                 try:
@@ -437,3 +452,13 @@ class Common:
             if job_prefix in test_map:
                 test_data_map.append(job_name["Job-Name"])
         return test_data_map
+
+    @staticmethod
+    def decoding_strings(data):
+        if isinstance(data, str):
+            data = data.replace("b'", '')
+            return data
+        elif isinstance(data, bytes):
+            return data.decode()
+        else:
+            return False

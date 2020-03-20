@@ -51,7 +51,7 @@ class JenkinsJob:
     @staticmethod
     def download_the_logs(downloadlink, job_name):
         status = subprocess.call(
-            ["wget {} -P {}/{} --no-check-certificate".format(downloadlink, os.path.abspath('.'),
+            ["wget {} -P {}/{}".format(downloadlink, os.path.abspath('.'),
                                        Common.get_config_value("data_location"))], shell=True)
         if status == 0:
             rename_file_name = "{}_{}".format(job_name, random.randint(1, 10000))

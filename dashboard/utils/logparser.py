@@ -150,11 +150,15 @@ class LogAnalyser:
         command = ' /' + co1 + '/ {flag=1;next} /' + co2 + '/{flag=0} flag { print }'
         datas = os.popen(("cat {}| awk '{}'".format(filename, command)))
         for data in datas:
-            data = data.strip().replace("'", "")
+            data = Common.decoding_strings(data)
             if data:
-                if re.search('(Warning)|(Error)|(Failed)|(FAIL)|(Fail)|(ERROR)|(WARNING)',
-                             "{}".format(data)):
-                    warning_error_collection[key1].append(data.strip())
+                data = data.strip().replace("'", "")
+                if data:
+                    if re.search('(Warning)|(Error)|(Failed)|(FAIL)|(Fail)|(ERROR)|(WARNING)',
+                                 "{}".format(data)):
+                        warning_error_collection[key1].append(data.strip())
+            else:
+                warning_error_collection[key1].append("Data is not in correct format")
         return warning_error_collection
 
     @staticmethod
@@ -181,7 +185,12 @@ class LogAnalyser:
                     filename, system_log_path, log_type))
             if datas:
                 for data in datas:
-                    if not re.search(r"Errors found:", data):
-                        system_log[log_type.split("/")[-1].replace(".", "-")] = \
-                            data[0:5000]
+                    data = Common.decoding_strings(data)
+                    if True:
+                        if not re.search(r"Errors found:", data):
+                            system_log[log_type.split("/")[-1].replace(".", "-")] = \
+                                data[0:5000]
+                        else:
+                            system_log[log_type.split("/")[-1].replace(".", "-")]\
+                                = "String format is not correct"
         return system_log
