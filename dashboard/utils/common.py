@@ -7,13 +7,30 @@ import xlwt
 import time
 import yaml
 import paramiko
+import configparser
+import logging.config
 from functools import reduce
+
+from cryptography.fernet import Fernet
 
 
 class Common:
+    report_path = os.path.join(os.path.abspath("."), "report")
     config_path = os.path.join(os.path.abspath("."), "config")
     if not os.path.exists(config_path):
         config_path = os.path.join(os.path.abspath("."), "config")
+    logging.config.fileConfig(fname=f'{config_path}/logger.ini',
+                              disable_existing_loggers=False)
+    logger = logging.getLogger('log_analyzer')
+
+    @staticmethod
+    def log_location_update():
+        config = configparser.ConfigParser()
+        config.read(f"{Common.config_path}/logger.ini")
+        config.set("handler_fileHandler", 'args',
+                   f"('{Common.report_path}/Automation.log', 'a')")
+        with open(f"{Common.config_path}/logger.ini", 'w') as f:
+            config.write(f)
 
     @staticmethod
     def validation_param_detail(yaml_file_name, file_header):
@@ -22,8 +39,7 @@ class Common:
         :return: validation_param
         """
         validation_param = ast.literal_eval \
-            (json.dumps(yaml.load(open("{}/{}". \
-                                       format(Common.config_path, yaml_file_name)),
+            (json.dumps(yaml.load(open(f"{Common.config_path}/{yaml_file_name}"),
                                   Loader=yaml.FullLoader)[file_header]))
         return validation_param
 
@@ -127,9 +143,8 @@ class Common:
         This method use to prepare the log based on users request.
         :param dict data:
         """
-        report_file_path = '{}/{}'.format(os.path.abspath('.'),
-                                          Common.get_config_value("report_location"))
-        fd = open("{}/mail_report.html".format(report_file_path), "w")
+        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        fd = open(f"{report_file_path}/mail_report.html", "w")
         fd.write('''
                 <html>
                     <head>
@@ -170,58 +185,55 @@ class Common:
                                     <th> Job Status </th>
                                     </tr></thead> '''.format(data["body"]))
         data.pop('body')
-        report_file_path = '{}/{}'.format(os.path.abspath('.'),
-                                          Common.get_config_value("report_location"))
+        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
 
-        if os.path.isfile("{}/{}".format(report_file_path, "subject")):
-            os.remove("{}/{}".format(report_file_path, "subject"))
-        if os.path.isfile("{}/{}".format(report_file_path, "recipient")):
-            os.remove("{}/{}".format(report_file_path, "recipient"))
-        with open("{}/{}".format(report_file_path, "subject"), "wb") as handler:
+        if os.path.isfile(f"{report_file_path}/subject"):
+            os.remove(f"{report_file_path}/subject")
+        if os.path.isfile(f"{report_file_path}/recipient"):
+            os.remove(f"{report_file_path}/recipient")
+        with open(f"{report_file_path}/subject", "wb") as handler:
             pickle.dump(data["subject"], handler)
         data.pop("subject")
 
-        with open("{}/{}".format(report_file_path, "recipient"), "wb") as handler:
+        with open(f"{report_file_path}/recipient", "wb") as handler:
             pickle.dump(data["recipient"], handler)
         data.pop('recipient')
 
         for _ in data:
+            # need to check
             fd.write('<tr><td>{}</td>'.format(_, data[_]))
             fd.write("<td>")
             for content in data[_]["highlighted_information"]:
                 if (content.lstrip()).rstrip():
-                    if re.search(r'tests.', "{}".format(content)):
+                    if re.search(r'tests.', f"{content}"):
                         fd.write(
-                            "<font color=red><li align=\"left\">{}</li></font>".format(
-                                (content.lstrip()).rstrip()))
+                            f"<font color=red><li align=\"left\">{(content.lstrip()).rstrip()}</li></font>")
                     else:
                         fd.write(
-                            "<li align=\"left\">{}</li>".format(
-                                (content.lstrip()).rstrip()))
+                            f"<li align=\"left\">{(content.lstrip()).rstrip()}</li>")
             fd.write("</td>")
-            fd.write("<td><a href={}>Job Link</a></td>".format(data[_]['Build Url']))
+            fd.write(f"<td><a href={data[_]['Build Url']}>Job Link</a></td>")
             if data[_]['bugzilla'].lstrip().rstrip():
                 fd.write(
-                    "<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={}>Bugzilla_link</a></td>".format(
-                        data[_]['bugzilla']))
+                    f"<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={data[_]['bugzilla']}>Bugzilla_link</a></td>")
             else:
-                fd.write("<td>{}</a></td>".format(data[_]['bugzilla']))
+                fd.write(f"<td>{data[_]['bugzilla']}</a></td>")
             if data[_]['Build_Status'] == "SUCCESS":
                 color = "green"
-                fd.write("<td><font color={}>PASSED</font></td>".format(color))
+                fd.write(f"<td><font color={color}>PASSED</font></td>")
             else:
                 color = "red"
-                fd.write("<td><font color={}>{}</font></td>".format(color, data[_][
-                    'Build_Status']))
+                fd.write(f"<td><font color={color}>FAILED</font></td>")
         fd.write('''
         </table>
         </body>
         <p><font color="black">Note: For more details</font>
-        <form action="https://github.com/devendra104/log_analyzer_tool"><input type="submit" value="Helper Page" /></form></p>
+        <form action="https://abc.doc"><input type="submit" value="Details Page" /></form></p>
         <p><font color="black">Thanks</font><br>
-        <font color="black">Devendra</font><p>
+        <font color="black">XYZ</font><p>
         </html>''')
         fd.close()
+        Common.logger.info("Report prepared for the selected job and their type")
 
     @staticmethod
     def generate(th1):
@@ -244,56 +256,56 @@ class Common:
         """
         This method use to copy the report to the mail server.
         """
-        report_file_path = '{}/{}'.format(os.path.abspath('.'),
-                                          Common.get_config_value("report_location"))
-        with open("{}/{}".format(report_file_path, "subject"), "rb") as subject_handler:
+        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        with open(f"{report_file_path}/subject", "rb") as subject_handler:
             subject = pickle.load(subject_handler)
-        with open("{}/{}".format(report_file_path, "recipient"),
-                  "rb") as recipient_handler:
+        with open(f"{report_file_path}/{'recipient'}", "rb") as recipient_handler:
             recipient = pickle.load(recipient_handler)
-        report_file_path = '{}/{}'.format(os.path.abspath('.'),
-                                          Common.get_config_value("report_location"))
-        if os.path.isfile("{}/mail_report.html".format(report_file_path)):
-            os.popen(
-                "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@{} {}/{} {} {}". \
-                format(Common.get_config_value("build_server_hostname"),
-                       Common.get_config_value("mail_script_location"),
-                       Common.get_config_value("mail_script_name"),
-                       subject, recipient))
+        report_file_path = f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
+        try:
+            if os.path.isfile(f"{report_file_path}/mail_report.html"):
+                os.popen(f"ssh -i {Common.get_config_value('build_server_pemfile')} "
+                         f"-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                         f" root@{Common.get_config_value('build_server_hostname')}"
+                         f" {Common.get_config_value('mail_script_location')}/"
+                         f"{Common.get_config_value('mail_script_name')} "
+                         f"{subject} {recipient}")
+                Common.logger.info("Mail send successfully")
+        except Exception as ex:
+            Common.logger.warning(f"Mail sent failed due to exception: {ex}")
 
     @staticmethod
     def environment_preparation():
         """
         This method use to prepare the environment and check the data path exist or not.
         """
-        report_file_path = '{}/{}'.format(os.path.abspath('.'),
-                                          Common.get_config_value("report_location"))
-        data_location_path = '{}/{}'.format(os.path.abspath('.'),
-                                            Common.get_config_value("data_location"))
-        if '{}'.format(Common.get_config_value("report_location")):
-            if os.path.isdir("{}".format(report_file_path)):
+        report_file_path = f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
+        data_location_path = f"{os.path.abspath('.')}/{Common.get_config_value('data_location')}"
+        if f"{Common.get_config_value('report_location')}":
+            if os.path.isdir(f"{report_file_path}"):
                 for data_path, directory_list, file_list in \
-                        os.walk("{}".format(report_file_path)):
-                    [os.remove("{}/{}".format(report_file_path, file))
+                        os.walk(f"{report_file_path}"):
+                    [os.remove(f"{report_file_path}/{file}")
                      for file in file_list]
             else:
-                os.mkdir("{}".format(report_file_path))
+                os.mkdir(f"{report_file_path}")
             workbook = xlwt.Workbook()
             workbook.add_sheet('test1')
-            workbook.save("{}/report.xls".format(report_file_path))
-        if '{}'.format(Common.get_config_value("data_location")) \
+            workbook.save(f"{report_file_path}/report.xls")
+        if f'{Common.get_config_value("data_location")}' \
                 not in Common.get_config_value("unsupported_path"):
             try:
-                if os.path.isdir("{}".format(data_location_path)):
+                if os.path.isdir(f"{data_location_path}"):
                     for data_path, directory_list, file_list in \
-                            os.walk("{}".format(data_location_path)):
-                        [os.remove("{}/{}".format(data_path, file)) for file in file_list]
+                            os.walk(f"{data_location_path}"):
+                        [os.remove(f"{data_path}/{file}") for file in file_list]
                 else:
-                    os.mkdir("{}".format(data_location_path))
-            except OSError:
-                raise LogException.PATH_NOT_FOUND("FAIL:")
+                    os.mkdir(f"{data_location_path}")
+            except OSError as ex:
+                Common.logger.warning(f"Path not found  {ex}")
         else:
-            raise LogException.PATH_NOT_FOUND("PATH NOT FOUND")
+            Common.logger.warning(f"Path not found")
+        Common.logger.info("Environment preparation completed successfully")
 
     @staticmethod
     def version_update(component_version):
@@ -305,19 +317,18 @@ class Common:
         """
         version_update_list = {"validation_parameter.sample": "validation_parameter.yaml"
             , "machine_detail.sample": "machine_detail.yaml"}
-        command = "sed -i 's/<component-version>/{}/'".format(component_version)
+        command = f"sed -i 's/<component-version>/{component_version}/'"
         for tmp_file in version_update_list:
-            if os.path.isfile(
-                    "{}/{}".format(Common.config_path, version_update_list[tmp_file])):
-                os.remove(
-                    "{}/{}".format(Common.config_path, version_update_list[tmp_file]))
-            status = os.popen("cp {}/{} {}/{}".format(Common.config_path, tmp_file,
-                                                      Common.config_path,
-                                                      version_update_list[tmp_file]))
+            if os.path.isfile(f"{Common.config_path}/{version_update_list[tmp_file]}"):
+                os.remove(f"{Common.config_path}/{version_update_list[tmp_file]}")
+            status = os.popen(f"cp {Common.config_path}/{tmp_file} {Common.config_path}/"
+                              f"{version_update_list[tmp_file]}")
             status.close()
-            file_name = "{}/{}".format(Common.config_path, version_update_list[tmp_file])
-            status = os.popen("{} {}".format(command, file_name))
+            file_name = f"{Common.config_path}/{version_update_list[tmp_file]}"
+            status = os.popen(f"{command} {file_name}")
             status.close()
+        Common.logger.info(
+            "Version updated successfully in runtime gernated validation yaml file")
 
     @staticmethod
     def ssh_connection_handling(ssh_object, hostname, username, password):
@@ -330,16 +341,15 @@ class Common:
         :return: ssh_object, bool value
         """
         try:
-            ssh_object.connect("{}".format(hostname), username=username,
-                               password=password)
+            ssh_object.connect(f"{hostname}", username=username, password=password)
             return ssh_object
         except paramiko.ssh_exception.AuthenticationException:
+            Common.logger.warning("ssh connection failed with AuthenticationException")
             return False
 
     @staticmethod
     def record_updater(records, observations):
         """
-
         :param records:
         :param observations:
         :return:
@@ -349,43 +359,56 @@ class Common:
                 record = ast.literal_eval(records[record])
             except Exception:
                 record = record
-            if type(records[record]) is dict:
-                records[record] = Common.record_updater(records[record], observations)
-
-            elif type(records[record]) is list:
-                list_records = []
-                for list_record in records[record]:
-                    for observation in observations:
-                        if observation != "_id":
-                            try:
-                                if re.search(observation, "{}".format(list_record)):
-                                    if not re.search(observations[observation],
-                                                     "{}".format(records[record])):
-                                        if not re.search("-->", "{}".format(list_record)):
-                                            list_records.append(
-                                                "{}".format(list_record) + " --> " +
-                                                observations[observation])
+            try:
+                if type(records[record]) is dict:
+                    records[record] = Common.record_updater(records[record], observations)
+                elif type(records[record]) is list:
+                    list_records = []
+                    for list_record in records[record]:
+                        for observation in observations:
+                            if observation != "_id":
+                                try:
+                                    if re.search(observation, f"{list_record}"):
+                                        if not re.search(observations[observation],
+                                                         f"{records[record]}"):
+                                            if not re.search("-->", f"{list_record}"):
+                                                list_records.append(
+                                                    f"{list_record}" + " --> " +
+                                                    observations[observation])
+                                            else:
+                                                list_records.append(list_record)
                                         else:
                                             list_records.append(list_record)
                                     else:
                                         list_records.append(list_record)
-                                else:
-                                    list_records.append(list_record)
-                            except Exception:
-                                pass
-                records[record] = list_records
-            else:
-                for observation in observations:
-                    if observation != "_id":
-                        try:
-                            if re.search(observation, "{}".format(records[record])):
-                                if not re.search(observations[observation],
-                                                 "{}".format(records[record])):
-                                    records[record] = "{}".format(
-                                        records[record]) + " --> " + \
-                                                      observations[observation]
-                        except Exception:
-                            pass
+                                except Exception as ex:
+                                    Common.logger.warning(
+                                        f"Exception happened in observation comparison {ex}")
+                    records[record] = list_records
+                else:
+                    records = Common.data_comparison(observations, records, record)
+            except Exception:
+                records = Common.data_comparison(observations, records, record)
+        return records
+
+    @staticmethod
+    def data_comparison(observations, records, record):
+        """
+
+        :param observations:
+        :param records:
+        :param record:
+        :return:
+        """
+        for observation in observations:
+            if observation != "_id":
+                try:
+                    if re.search(observation, f"{records[record]}"):
+                        if not re.search(observations[observation], f"{records[record]}"):
+                            records[record] = f"{records[record]}" + " --> " + \
+                                              observations[observation]
+                except Exception as ex:
+                    Common.logger.warning(f"Exception happened in data comparison {ex}")
         return records
 
     @staticmethod
@@ -402,18 +425,24 @@ class Common:
 
     @staticmethod
     def data_preparation_for_report(job_category, job_name, bugzilla, build_number):
+        """
+        This methods uses tpo prepare the test report
+        :param job_category:
+        :param job_name:
+        :param bugzilla:
+        :param build_number:
+        :return:
+        """
         common_report = dict()
         if len(job_category) == len(job_name) == len(bugzilla):
             for job_no in range(len(job_category)):
                 common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[
-                                                           job_no],
+                                                       "build_number": build_number[job_no],
                                                        "bugzilla": bugzilla[job_no]}
         elif len(bugzilla) == 0 and (len(job_category) == len(job_name)):
             for job_no in range(len(job_category)):
                 common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[
-                                                           job_no],
+                                                       "build_number": build_number[job_no],
                                                        "bugzilla": ""}
         else:
             for job_no in range(len(job_category)):
@@ -425,12 +454,10 @@ class Common:
 
             for job_no in range(len(job_category)):
                 try:
-                    common_report[job_category[job_no]]["build_number"] = build_number[
-                        job_no]
+                    common_report[job_category[job_no]]["build_number"] = build_number[job_no]
                     temp = job_no
                 except IndexError:
-                    common_report[job_category[job_no]]["build_number"] = build_number[
-                        temp]
+                    common_report[job_category[job_no]]["build_number"] = build_number[temp]
 
             for job_no in range(len(job_category)):
                 try:
@@ -442,6 +469,11 @@ class Common:
 
     @staticmethod
     def test_map_details(data_list):
+        """
+        This method uses to create the test map
+        :param list data_list:
+        :return list:
+        """
         test_data_map = list()
         test_map = Common.get_config_value("test_map")
         for job_name in data_list:
@@ -455,6 +487,11 @@ class Common:
 
     @staticmethod
     def decoding_strings(data):
+        """
+        This method uses to decode the passed string.
+        :param data:
+        :return:
+        """
         if isinstance(data, str):
             data = data.replace("b'", '')
             return data
@@ -462,3 +499,16 @@ class Common:
             return data.decode()
         else:
             return False
+
+    @staticmethod
+    def decrypt(encryption_value):
+        """
+        This method uses to decrypt the password
+        :param encryption_value:
+        :return str: decrypt key
+        """
+        Common.logger.info("Decryption job started started")
+        key = Common.get_config_value('jenkins_key')
+        fkey = Fernet(key.encode())
+        decrypt_value = fkey.decrypt(encryption_value.encode())
+        return decrypt_value

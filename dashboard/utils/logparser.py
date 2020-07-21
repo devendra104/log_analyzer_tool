@@ -1,6 +1,5 @@
 import re
 import os
-from utils.log_exception import LogException
 from utils.common import Common
 
 
@@ -21,10 +20,12 @@ class LogAnalyser:
         pattern_data = [machine_data[content] for content in machine_data if
                         re.search(r'{}'.format(content), "{}".format(job_file_name))]
         if pattern_data:
-            machine_detal = os.popen("{} {}/{}".format(pattern_data[0], Common.\
-                                                       get_config_value("data_location"),
-                                                       job_file_name)).readlines()[0].strip()
-            return machine_detal
+            machine_detail = os.popen(f"{pattern_data[0]} "
+                                      f"{Common.get_config_value('data_location')}"
+                                      f"/{job_file_name}").readlines()[0].strip()
+            Common.logger.info(f"[machine_details]: Successfully collected the machine detail: "
+                               f"{machine_detail}")
+            return machine_detail
         else:
             return None
 
@@ -37,13 +38,15 @@ class LogAnalyser:
         :return: ran_status
         """
         try:
-            ran_status = os.popen("zless {}/{}|grep -w Finished: ".format
-                                  (Common.get_config_value("data_location"),
-                                   job_file_name)).readlines()[0].split(":")[-1].strip()
+            ran_status = os.popen(f"zless {Common.get_config_value('data_location')}/"
+                                  f"{job_file_name}|grep -w Finished: ").readlines()[0].split(":")[-1].strip()
+            Common.logger.info(f"[]: Successfully collected the status of build job name:"
+                               f" {job_file_name}")
 
             return ran_status
-        except Exception:
-            raise LogException.PATTERN_MATCH_EXCEPTION("buid_status")
+        except Exception as ex:
+            Common.logger.warning(f"[ran_job_status]: Failed to match the pattern of ran job: "
+                                  f"{ex}")
 
     @staticmethod
     def keyword_validation(keywords, job_file_name):
@@ -67,8 +70,9 @@ class LogAnalyser:
             status = "All Keyword matched" if match == 0 else \
                 "Keyword Validation Failed"
             return status
-        except Exception:
-            raise LogException.PATTERN_MATCH_EXCEPTION("build_status")
+        except Exception as ex:
+            Common.logger.warning(f"[keyword_validation]: Failed to match the keyword: "
+                                  f"{keywords} in the logs {ex}")
 
     @staticmethod
     def regex_information_extractor(job_file_name, command):
@@ -100,35 +104,38 @@ class LogAnalyser:
                       "awk -F'/' '{print $1}'|awk 'NF>0'|grep -v '^mkdir\|" \
                       "^sed\|^rm\|^echo\|^ping\|^cp\|^wget\|^cd\|^/\|^du\|^mktemp\|" \
                       "^firewall-cmd\|^scp\|^which\|^df\|grep\|^\[\|^/\|^/\|^[1-9]'"
-        messages = os.popen("cat {}|{}".format(filename, regex_logic)).readlines()
+        messages = os.popen(f"cat {filename}|{regex_logic}").readlines()
         for message in messages:
-            temp_key = "{}".format(message).replace(".", "  ").strip()
+            temp_key = f"{message}".replace(".", "  ").strip()
             suspicious_messages[temp_key] = list()
             message = message.strip().replace("'", "")
             if message:
                 try:
                     command1 = 'flag{ if (/run: /){print buf; flag="";} ' \
-                               'else buf = buf $0 ORS};' + "/ run: {}/".format(message)
+                               'else buf = buf $0 ORS};' + f"/ run: {message}/"
                     command2 = "{flag=1}"
                     pattern = os.popen(
-                        "awk '{} {}' {} 2>/dev/null".format(command1, command2,
-                                                            filename)).readlines()
+                       f"awk '{command1} {command2}' {filename} 2>/dev/null").readlines()
                     for pat in pattern:
                         data_mod = pat.strip()
                         if not len(data_mod) == 0:
                             try:
-                                if re.search('(Warning)|(Error)|(Failed)|'
-                                             '(FAIL)|(Fail)|(ERROR)|(WARNING)',
-                                             "{}".format(data_mod)):
+                                if re.search(f'(Warning)|(Error)|(Failed)|'
+                                             f'(FAIL)|(Fail)|(ERROR)|(WARNING)',
+                                             f'{data_mod}'):
                                     # To Handle mongo db issue .(dot) as a
                                     # key store issue
 
                                     suspicious_messages[temp_key]\
                                         .append(data_mod[0:190].strip())
-                            except Exception:
-                                pass
-                except Exception:
-                    pass
+                            except Exception as ex:
+                                Common.logger.warn(f"[suspicious_message_extractor]: Exception "
+                                                   f"throws while extracting the suspicious "
+                                                   f"message {ex}")
+                except Exception as ex:
+                    Common.logger.warn(f"[suspicious_message_extractor]: Failed to "
+                                       f"extract the suspicious message from the logs"
+                                       f" {ex}")
         return suspicious_messages
 
     @staticmethod
@@ -148,17 +155,19 @@ class LogAnalyser:
         co1 = "{}".format(pattern1)
         co2 = "^{}".format(pattern2)
         command = ' /' + co1 + '/ {flag=1;next} /' + co2 + '/{flag=0} flag { print }'
-        datas = os.popen(("cat {}| awk '{}'".format(filename, command)))
+        datas = os.popen(f"cat {filename}| awk '{command}'")
         for data in datas:
             data = Common.decoding_strings(data)
             if data:
                 data = data.strip().replace("'", "")
                 if data:
-                    if re.search('(Warning)|(Error)|(Failed)|(FAIL)|(Fail)|(ERROR)|(WARNING)',
-                                 "{}".format(data)):
+                    if re.search(f'(Warning)|(Error)|(Failed)|(FAIL)|(Fail)|(ERROR)|(WARNING)',
+                                 f'{data}'):
                         warning_error_collection[key1].append(data.strip())
             else:
                 warning_error_collection[key1].append("Data is not in correct format")
+        Common.logger.info("[pattern_to_pattern_match]: Successfully Collected the error and"
+                           " other warning messages from in-between pattern")
         return warning_error_collection
 
     @staticmethod
@@ -176,13 +185,12 @@ class LogAnalyser:
                      'foreman-installer/capsule.log', 'foreman/production.log',
                      'foreman-proxy/proxy.log', 'candlepin/candlepin.log', 'messages',
                      'mongodb/mongodb.log', 'tomcat/catalina.out']
-        filename = "{}/{}".format(Common.get_config_value("data_location"), file_name)
+        filename = f"{Common.get_config_value('data_location')}/{file_name}"
         system_log_path = "/var/log"
         for log_type in log_types:
             datas = os.popen(
-                "cat {}|grep -A4 '{}/{}:'"
-                "|grep -A1 'Errors found:'".format(
-                    filename, system_log_path, log_type))
+                f"cat {filename}|grep -A4 '{system_log_path}/{log_type}:'"
+                f"|grep -A1 'Errors found:'")
             if datas:
                 for data in datas:
                     data = Common.decoding_strings(data)
@@ -193,4 +201,6 @@ class LogAnalyser:
                         else:
                             system_log[log_type.split("/")[-1].replace(".", "-")]\
                                 = "String format is not correct"
+        Common.logger.info(f"[system_log_analysis]: Successfully collected the systems log of"
+                           f" {file_name}")
         return system_log
