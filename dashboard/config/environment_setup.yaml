@@ -1,12 +1,15 @@
 config:
   data_location: "downloaded_data"
   report_location: "report"
-  jenkins_username: "XYZ"
-  jenkins_password: "XYZ"
+  logger_file_name: "loganalysis.log"
+  jenkins_username: "<jenkins_encrypted_username>"
+  jenkins_password: "<jenkins_encrypted_password>"
+  jenkins_key: "<jenkins_key>"
   database_name: "analysis_record_db"
   observation_db_name: "observation_record_db"
   mongodb_container: "mongodb"
-  build_server_hostname: "build_server.com"
+  build_server_hostname: "<build-server-hostname>"
+  build_server_pemfile: "securecontent.pem"
   mail_script_name: "mail_content.sh"
   mail_script_location: "/root"
   mongodb_port: 27017
@@ -15,7 +18,7 @@ config:
     - "password1"
     - "password2"
     - "password3"
-  jenkins_base_url: "https://jenkins_XYZ.com"
+  jenkins_base_url: "https://XYZ.com"
   analysis_input_file: "build.xls"
   analysis_output_file: "report.xls"
   unsupported_path:

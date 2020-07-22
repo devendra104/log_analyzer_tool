@@ -22,6 +22,7 @@ from utils.system_properties import SystemProperties
 class Controller:
     def __init__(self):
         self.prop_obj = SystemProperties()
+        Common.log_location_update()
 
     def run(self):
         """
@@ -51,8 +52,8 @@ class Controller:
         """
         job_list = Controller.reading_input_data_from_xls(
             self.prop_obj.sheets_number[self.prop_obj.sheets],
-            "{}/config/{}".format(os.path.abspath('.'),
-                                  Common.get_config_value("analysis_input_file")))
+            f"{os.path.abspath('.')}/config/{Common.get_config_value('analysis_input_file')}")
+        Common.logger.info(f"[mapper_builder] Processing is happening for job {job_list}")
         [self.prop_obj.jobs_list.append(job) for job in job_list]
         jenkins_obj = JenkinsJob()
         for job_attributes in self.prop_obj.jobs_list:
@@ -71,7 +72,9 @@ class Controller:
                         self.prop_obj.job_mapper[build_number]["snap_no"] = job_attributes[4]
             else:
                 with jenkins_obj:
-                    build_number, time_stamp = jenkins_obj.get_job_info("{}".format(validation_data["job_name"]))
+                    build_number, time_stamp = jenkins_obj.get_job_info(f"{validation_data['job_name']}")
+                    Common.logger.info(f"[mapper_builder]: Collected job information build_number"
+                                       f" {build_number} and time stamp {time_stamp}")
                     self.prop_obj.job_mapper[build_number] = {}
                     self.prop_obj.job_mapper[build_number]["time_stamp"] = time_stamp
                     self.prop_obj.job_mapper[build_number]["skip_check"] = ast.literal_eval(
@@ -79,14 +82,18 @@ class Controller:
                     self.prop_obj.job_mapper[build_number]["build_version"] = \
                         job_attributes[4]
                     self.prop_obj.job_mapper[build_number]["snap_no"] = job_attributes[4]
-
+            Common.logger.info(f"[mapper_builder] Attribute collected {job_attributes}")
             for build_number in self.prop_obj.job_mapper:
+                Common.logger.info(f"[mapper_builder]: Log collection method called")
                 build_file, build_url = JenkinsJob.jenkins_data_collection(
                     validation_data["job_name"], int(build_number))
+                Common.logger.info(f"[mapper_builder] log collected for build {build_number} "
+                                   f"and url {build_url}")
                 self.prop_obj.job_mapper[build_number]["build_file_name"] = build_file
                 self.prop_obj.job_mapper[build_number]["build_url"] = build_url
 
             for build_number in self.prop_obj.job_mapper:
+                Common.logger.info("[mapper_builder]: Job analysis called ...")
                 self.log_analysis(build_number, validation_data)
                 self.prop_obj.rows_no += 1
 
@@ -129,12 +136,14 @@ class Controller:
         """
         self.header_of_table()
         job_file_name = self.prop_obj.job_mapper[build_number]["build_file_name"]
+        Common.logger.info(f"[log_analysis]: headers of xls table updated")
         build_status = LogAnalyser.ran_job_status(job_file_name)
         machine_address = LogAnalyser.machine_details(job_file_name)
 
         upgrade_validation_result = Validation.job_analysis(validation_data,
                                                             job_file_name, machine_address,
                                                             self.prop_obj.job_mapper[build_number]["skip_check"])
+        Common.logger.info(f"[log_analysis]: Updated validation checked")
 
         job_time_stamp = time.ctime(self.prop_obj.job_mapper[build_number]["time_stamp"])
         xls_report_content = [validation_data["job_name"], build_number,
@@ -151,6 +160,7 @@ class Controller:
                            "SystemLog": upgrade_validation_result["System_Log"]
                            if "System_Log" in upgrade_validation_result else None,
                            "Job Url": self.prop_obj.job_mapper[build_number]["build_url"]}
+        Common.logger.info("[log_analysis] Analysis result collected")
         observated_data_object = accessing_observation_db()
         if observated_data_object.count() >= 1:
             observated_data = Common.collection_creation(observated_data_object)
@@ -159,10 +169,11 @@ class Controller:
                         observated_content.pop('_id')
                         analysis_result["Validation"] = Common.\
                             record_updater(analysis_result["Validation"], observated_content)
-            except Exception:
-                # TODO
-                pass
+            except Exception as ex:
+                Common.logger.warn(f"[log_analysis]: Exception observed while comparing the"
+                                   f" observation while evaluating the job: {ex}")
 
         db_update(analysis_result)
         DataUpdater.test_result_update(self.prop_obj.sheets_number[self.prop_obj.sheets],
                                        self.prop_obj.rows_no, xls_report_content)
+        Common.logger.info(f"[log_analysis] Analysis completed for build {build_number}")
