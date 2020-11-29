@@ -27,19 +27,17 @@ To check the current record or any past analyzed record click on the build histo
 
 ![picture](dashboard/static/img/Job_type.png)
 
-Click on any record we get the analysis data and if you have any observation then click on the data update link you get other page where you can submit your observation. 
+Click on any record we get the analysis data and if you have any observation then click on the data update link you get other page where you can submit your observation.
 
 ![picture](dashboard/static/img/analysis_report.png)
 
-To search the record click on Build Search where we provide two options,
+![picture](dashboard/static/img/analysis_report_pagination.png)
+
+To search the record click on Build Search where we provide 1 option,
 
 ![picture](dashboard/static/img/search_menu_dashboard.png)
 
-   **1:** The first one for search data via field(like job_name, build number, build status, component version and their snap version).
-   
-   ![picture](dashboard/static/img/search_by_field.png)
- 
-   **2:** The second one use to search a very specific job by providing the name of job, build number and component version.
+   **1:** This method use to search a very specific job by providing the name of job, build number and component version.
 
    ![picture](dashboard/static/img/search_a_specific_record.png)
 
@@ -50,7 +48,7 @@ To check the all past error and the observations click on "Error Collection and 
 The last option is for build the analysis report, The purpose of this option is to create the analysis report and share it with the respective team member.
 
 ![picture](dashboard/static/img/build_analysis_report.png)
- 
+
 
 **Pre-requisite:**
 
@@ -84,95 +82,99 @@ The last option is for build the analysis report, The purpose of this option is 
           pattern2: "PLAY RECAP *"
         highlited_upgrade_content: ""
 
-   **3:** If you wants to do the analysis on the build machine, then you have to update the regex that fetched the build machine details of your job in machine_detail.sample. 
-   
+   **3:** If you wants to do the analysis on the build machine, then you have to update the regex that fetched the build machine details of your job in machine_detail.sample.
+
     machine_detail:
         satellite6_db_upgrade_migrate: "awk '/The registered system name/ {print $NF}'"
         upgrade-to-<component-version>-rhel7: "awk '/The registered system name/ {print $NF}'"
 
-   
+
 **How to run:**
 
-   **1:** Create a virtual environment 
+   **1:** Create a virtual environment
 
       virtualenv -p python3.6 app_pyenv
-      
+
    **2:** source app_pyenv/bin/activate
-   
+
    **3:** pip install -r requirements.txt
-   
+
    **4:** Execute python rest_services.py
 
-       $ python rest_service.py 
+       $ python rest_service.py
          * Serving Flask app "views.pagination_support" (lazy loading)
          * Environment: production
            WARNING: This is a development server. Do not use it in a production deployment.
            Use a production WSGI server instead.
          * Debug mode: off
          * Running on http://0.0.0.0:5001/ (Press CTRL+C to quit)
-   
+
 
 **How to Update the Observation**
 
-   **1:** The  Observation data should be proper dictionary and for now we are not supporting character inside observation keys like (.\)) 
-    
+   **1:** The  Observation data should be proper dictionary and for now we are not supporting character inside observation keys like (.\))
+
         {"Time taken by task Repository Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server sync": "BZ#1787282(not used workaround for 6.6)}
-        
+
 **Helper**
 
    **1:** We have used tooltip to provide the help to understand the meaning of options whether it is input form or output results.
         ![picture](dashboard/static/img/tooltip.png)
-    
+
 **Deployment on Docker container**
-    
+
    **1:** Install docker on linux machine.
-   
+
    **2:** Clone the log_analyzer repository on docker server.
-   
+
    **3:** Check the environment_setup.yaml file and configured it according to your requirement.
-   
-          config:
-            data_location: "downloaded_data"
-            report_location: "report"
-            jenkins_username: "XYZ"
-            jenkins_password: "XYZ"
-            database_name: "analysis_record_db"
-            observation_db_name: "observation_record_db"
-            mongodb_container: "mongodb"
-            build_server_hostname: "build_system.redhat.com"
-            mail_script_name: "mail_content.sh"
-            mail_script_location: "/root"
-            mongodb_port: 27017
-            build_machine_username: "root"
-            build_machine_password:
-            - "password1"
+
+      config:
+        data_location: "downloaded_data"
+        report_location: "report"
+        logger_file_name: "loganalysis.log"
+        per_page: 5
+        jenkins_username: "encrypted username"
+          jenkins_password: "encrypted password"
+          jenkins_key: "keys to decrypt users credentials"
+          database_name: "analysis_record_db"
+          observation_db_name: "observation_record_db"
+          mongodb_container: "mongodb"
+          build_server_hostname: "xyz.com"
+          build_server_pemfile: "id_rsa"
+          mail_script_name: "mail_content.sh"
+          mail_script_location: "/root"
+          mongodb_port: 27017
+          build_machine_username: "root"
+          build_machine_password:
+            - "dog8code"
             - "password2"
             - "password3"
-            jenkins_base_url: "https://XYZ-jenkins.abc.com"
-            analysis_input_file: "build.xls"
-            analysis_output_file: "report.xls"
-            unsupported_path:
+          jenkins_base_url: "https://xyz.com"
+          analysis_input_file: "build.xls"
+          analysis_output_file: "report.xls"
+          unsupported_path:
             - "/home"
             - "/usr"
             - "/bin"
             - "/temp"
             - "/"
-            test_map:
+          test_map:
             - "automation-preupgrade"
-            - "automation-postupgrade"    
-             
+            - "automation-postupgrade"
+
+
    **4:** Pull the mentioned version of mongodb like below.
-            
+
         docker pull mongo:4.2.0
-        
+
    **5** Create the image of log analyzer tool by executing below command
-     
+
         docker build --tag dashboard_web --network=host .
-        
+
    **6** After that execute the docker-compose command
-   
+
         docker-compose up -d
    **7** mail server should be configured on host machine and copy the "mail_content.sh" script from repository to root directory.
-   
-        cp log_analyzer_tool/dashboard/mail_content.sh /root/mail_content.sh  
-   
+
+        cp log_analyzer_tool/dashboard/mail_content.sh /root/mail_content.sh

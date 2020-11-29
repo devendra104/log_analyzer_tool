@@ -1,11 +1,10 @@
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <script type="text/javascript" src="{{ url_for('static', filename='js/back.js')}}"></script>
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link href='https://fonts.googleapis.com/css?family=Caesar Dressing' rel='stylesheet'>
     <script src="{{ url_for('static', filename='js/tooltip.js')}}"></script>
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
     <script>
         function Success() {
             alert("Data Submitted Successfully...")
@@ -16,16 +15,15 @@
     </script>
 </head>
 <body>
-<div style="text-align:center;">
-<b>Log Analysis Menu</b>
+<h1>Job Analyzer</h1>
 <form method="post">
-<table class="t1" align="center" summary="Log Analysis Menu">
+<table id="customers">
       <thead><tr>
-      <th data-toggle="tooltip" data-placement="right" title="Please enter the job type like job1_1, job1_2 etc">Job Type</th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the jenkins job number of which you want to do analysis example: 1296 is the build number of installer job so enter 1296"> Job Number</th>
-      <th data-toggle="tooltip" data-placement="right" title="Please enter the version of current build it wouild be like 6.5, 6.4, 6.4 etc">Component Version</th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the snap number of component version it would be 1, 2, 3, GA etc">Snap/Build Version</th>
-          <th data-toggle="tooltip" data-placement="right" title="If you would like to do analysis on build machine then select check on build">Checks On Build Machine</th></tr></thead>
+      <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the job type like job1_1, job1_2 etc">Job Type</th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the jenkins job number of which you want to do analysis example: 1296 is the build number of installer job so enter 1296"> Job Number</th>
+      <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the version of current build it wouild be like 6.5, 6.4, 6.4 etc">Component Version</th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the snap number of component version it would be 1, 2, 3, GA etc">Snap/Build Version</th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="If you would like to do analysis on build machine then select check on build">Checks On Build Machine</th></tr></thead>
        <tr><td>{{form.job_type}}</td>
            <td>{{form.job_number}}</td>
            <td>{{form.component_version}}</td>
@@ -34,14 +32,14 @@
        </tr>
     <tfoot>
         <tr>
-          <th colspan="15">
-            redhat.com
+           <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>
     </table>
     <input type="submit" name="submit" value="Submit">
-    <button onclick="goBack()">Back</button>
+     <button onclick="history.back(-1)">Back</button>
     <button type="button" onclick="window.location.href='/';">Home</button>
 </form>
 {% with messages = get_flashed_messages() %}
@@ -53,6 +51,5 @@
     </ul>
   {% endif %}
 {% endwith %}
-</div>
 </body>
 </html>

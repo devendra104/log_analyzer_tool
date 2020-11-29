@@ -1,37 +1,24 @@
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <!--<img src="/static/img/red-hat-image.jpg" id="bg" alt="">-->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <meta http-equiv="refresh" content="12" >
-    <script src="{{ url_for('static', filename='js/tooltip.js') }}"></script>
+   <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link href='https://fonts.googleapis.com/css?family=Caesar Dressing' rel='stylesheet'>
 </head>
-<style>
-.t1{
-  width:50%;
-  min-width: 30px;
-  min-height:30px;
-  text-align: center;
-  border:1px solid black;
-  }
-</style>
 <body>
-<div style="text-align:center;">
-    <b>Job Search</b>
+<h1>Job Search</h1>
 <form method="post">
-<table class="t1" align="center" summary="Job Search Filter">
+<table id="customers">
       <thead><tr>
-      <th data-toggle="tooltip" data-placement="right" title="Please enter the job name, what you wants to search">Job Name</th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the build number of seeking job"> Build Number</th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the build version of seeking job and it would be like 6.5, 6.6, 6.7"> Component Version </th></tr></thead>
+      <th style="text-align:center;" data-toggle="tooltip" data-placement="right" title="Please enter the job name, what you wants to search">Job Name</th>
+          <th style="text-align:center;" data-toggle="tooltip" data-placement="right" title="Please enter the build number of seeking job"> Build Number</th>
+          <th style="text-align:center;" data-toggle="tooltip" data-placement="right" title="Please enter the build version of seeking job and it would be like 6.5, 6.6, 6.7"> Component Version </th></tr></thead>
        <tr> <td>{{form.job_name}}</td><td>{{form.build_number}}</td>
            <td>{{form.component_version}}</td></tr>
     <tfoot>
         <tr>
-          <th colspan="15">
-            redhat.com
+          <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>
@@ -49,6 +36,5 @@
     </ul>
   {% endif %}
 {%endwith%}
-</div>
 </body>
 </html>

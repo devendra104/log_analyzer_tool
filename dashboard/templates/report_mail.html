@@ -1,26 +1,23 @@
 <html>
 <head>
-   <link rel="stylesheet" type="text/css" href="css/main.css">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
-    <script type="text/javascript" src="{{ url_for('static', filename='js/failed.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/success.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link href='https://fonts.googleapis.com/css?family=Caesar Dressing' rel='stylesheet'>
 </head>
 <body>
-<div style="text-align:center;">
-<b>Report Builder</b>
+<h1>Report Builder</h1>
 <form method="post">
-<table class="t1" align="center" summary="Report Builder">
+<table id="customers">
       <thead><tr>
-          <th data-toggle="tooltip" data-placement="left" title="Job Category would be your customer name or type of job like installer, upgrade, preupgrade etc, If you are seeking a report of multiple job type then enter their name and separate them by comma example pre_upgrade,post_upgrade or RedHat, Google, Facebook "> Job Category </th>
-          <th data-toggle="tooltip" data-placement="right" title="Job Name would be the name of job, satellite6_db_upgrade, upgrade_to_6.7 etc, you can get the job name in build history, If you have multiple number job then separate them by comma "> Job Name</th>
-          <th data-toggle="tooltip" data-placement="right" title="Job Number would be the build number of job,If you have multiple number job then separate them by comma like 123,453,222"> Build Number </th>
-          <th data-toggle="tooltip" data-placement="right" title="Version of the testing component, it can be 6.7,7.5, 2.1 etc, there is no semicolon concept here, report will be prepared for single version"> Component Version</th>
-          <th data-toggle="tooltip" data-placement="right" title="Provide the bugzilla details here, If you have more than once bugzilla for a single job then separate them by dot otherwise separate them by comma"> Bugzilla </th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the recipient name here, It would always be single, or group"> Recipient </th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the subject of mail"> Subject </th>
-          <th data-toggle="tooltip" data-placement="right" title="Please enter the body of mail"> Body </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="left" title="Job Category would be your customer name or type of job like installer, upgrade, preupgrade etc, If you are seeking a report of multiple job type then enter their name and separate them by comma example pre_upgrade,post_upgrade or RedHat, Google, Facebook "> Job Category </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Job Name would be the name of job, satellite6_db_upgrade, upgrade_to_6.7 etc, you can get the job name in build history, If you have multiple number job then separate them by comma "> Job Name</th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Job Number would be the build number of job,If you have multiple number job then separate them by comma like 123,453,222"> Build Number </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Version of the testing component, it can be 6.7,7.5, 2.1 etc, there is no semicolon concept here, report will be prepared for single version"> Component Version</th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Provide the bugzilla details here, If you have more than once bugzilla for a single job then separate them by dot otherwise separate them by comma"> Bugzilla </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the recipient name here, It would always be single, or group"> Recipient </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the subject of mail"> Subject </th>
+          <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Please enter the body of mail"> Body </th>
       </tr></thead>
        <tr><td>{{form.job_category}}</td>
            <td>{{form.job_name}}</td>
@@ -33,8 +30,8 @@
        </tr>
     <tfoot>
         <tr>
-          <th colspan="15">
-            redhat.com
+           <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>
@@ -53,6 +50,5 @@
                     setTimeout(Redirect, 2000)
   {% endif %}
 {% endwith %}
-</div>
 </body>
 </html>

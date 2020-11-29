@@ -1,66 +1,75 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
 </head>
-<script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
 <script type=text/javascript src="{{
-  url_for('static', filename='js/common_function.js') }}"></script>
+  url_for('static', filename='js/search_by_second_field.js') }}"></script>
 <body>
-    <div class="pagination">
-        {%set count = 1%}
-        <a href="/evaluated_data_history/Job-Name/{{job_name}}/{{count}}">&laquo;</a>
-        {% for page in pages %}
-            <a href=/evaluated_data_history/Job-Name/{{job_name}}/{{loop.index}}>{{loop.index}}</a>
-        {%endfor%}
-        {%set count = pages|length%}
-        <a href="{{count}}">&raquo</a></div>
-    <table class="t1" summary="Log Analysis Report">
+<div style="margin:20px 0">
+    <div class="pagination" style="float:right">
+        {{ pagination.links }}
+    </div>
+    <div class="search_bar" style="float:left">
+        <button type="button" onclick="window.location.href='/';">Home</button>
+        <button onclick="history.back(-1)">Back</button>
+        <input type="text" id="myInput" onkeyup="searchByCommonField(9)"
+           placeholder="Type the string you looking for..." title="Type the string you looking for..">
+    </div>
+</div>
+<table id="customers">
       <thead>
             <tr>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Job Index count">Index</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Name of jenkins job, you can search it on jenkins server">Job Name</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Number of respective jenkins job name">Build Number</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="jenkins build URL of respective job">Build Url</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Status of Build job, we can update it as per our observation">Build Status</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build release version of non GA component">Component Version</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Snap number of ongoing non GA build version">Snap/Build Number</th>
-                <th colspan="3" data-toggle="tooltip" data-placement="right" title="Validation is divided into three parts, 1: Validation Over Target Machine, 2: Validation Of Keyword Availability in Log File 3: Commands Execution Status in Jenkins Log File ">Validation</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Time of triggered jenkins job">Build Time</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="It contains logs of system during job execution, depends on users, what kind of logs they wants to collect over there(Example in satellite: we collect Satellite log, Satellite-installer log, Capsule installer log, Capsule lo,production log, proxy log, Candlepin log, messages Catlina log) ">Systems Log Analysis</th>
-                <th rowspan="2" data-toggle="tooltip" data-placement="right" title="By using this option we can add our observation">Add Your Observation</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Job Index count">Index</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Name of jenkins job, you can search it on jenkins server">Job Name</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Number of respective jenkins job name">Build Number</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="jenkins build URL of respective job">Build Url</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Status of Build job, we can update it as per our observation">Build Status</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Build release version of non GA component">Component Version</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Snap number of ongoing non GA build version">Snap/Build Number</th>
+                <th style="text-align:center" colspan="3" data-toggle="tooltip" data-placement="right" title="Validation is divided into three parts, 1: Checks On Target Machine, 2: Keywords Check  3: Command Execution Status ">Validation</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="Build Time of triggered jenkins job">Build Time</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="It contains logs of system during job execution, depends on users, what kind of logs they wants to collect over there(Example in satellite: we collect Satellite log, Satellite-installer log, Capsule installer log, Capsule lo,production log, proxy log, Candlepin log, messages Catlina log) ">System Log</th>
+                <th style="text-align:center" rowspan="2" data-toggle="tooltip" data-placement="right" title="By using this option we can add our observation">Add Your Observation</th>
         </tr>
-            <tr><th data-toggle="tooltip" data-placement="right" title="Validation over target machine: It includes the commands or checked which we executed over target machine">Validation Over Target Machine</th>
-            <th data-toggle="tooltip" data-placement="right" title="Here, we are checking few strings in jenkins logs whether it available or not, If it is not available then we ask from the developer, Did any change happens around that or not, If not then we file it as bug">Validation Of Keyword Availability in Log File</th>
+            <tr><th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Checks on target machine: Execute set of commands on the build setup to verify the build stability">Checks On Target Machine</th>
+            <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Here, we check few strings in jenkins log whether it available or not, If it does not available then we ask from the developer, Did any change happens around that or not, If not then we file new issue for that"> Keywords Check</th>
                 {% if pattern_type == "automation-preupgrade" %}
-                    <th data-toggle="tooltip" data-placement="right" title="It contains all the failed test cases information">Test Failure</th>
+                    <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="It contains all the failed test cases for this build">Test Failure</th>
                 {% else %}
-                    <th data-toggle="tooltip" data-placement="right" title="Here, we check all the commands execution status, We are publishing only warning, alert or failure in this column">Commands Execution Status in Jenkins Log File</th>
+                    <th style="text-align:center" data-toggle="tooltip" data-placement="right" title="Here, we check all the commands execution status, We are publishing only warning, alert or failure in this column">Command Execution Status</th>
                 {% endif %}
         </tr>
       </thead>
       <tbody>
       {% for comment in List %}
-        <tr> <td>{{index[loop.index-1]}}</td><td> {{comment["Job-Name"]}} </td>
+      {% if comment["Build-Status"] == "SUCCESS" %}
+      <tr class="text-success">
+            {% elif comment["Build-Status"] == "UNSTABLE"%}
+      <tr class="text-warning">
+          {%else %}
+      <tr class="text-danger">
+          {%endif%}
+          <td>{{ loop.index + (page - 1) * per_page }}</td><td> {{comment["Job-Name"]}} </td>
             <td> {{comment["Build-Number"]}}</td>
             <td> <a href="{{comment['Job Url']}}">"Build Link"</a></td>
         <td> {{comment["Build-Status"]}} </td>
-            <td>{{comment["Build-Version"]}}</td> <td>{{comment["Snap-Version"]}}</td>
+            <td align="center">{{comment["Build-Version"]}}</td>
+          <td align="center">{{comment["Snap-Version"]}}</td>
             {% if comment["Validation"]["on_machine_output"] != "Build Machine Check was unchecked" %}
             <td> {%for i in comment["Validation"]["on_machine_output"] %}
                 <b>{{i}}:</b><br>
-                <font size="2" color="blue"> {{comment["Validation"]["on_machine_output"][i]}}</font>
+                <font size="2"> {{comment["Validation"]["on_machine_output"][i]}}</font>
                 <br>{%endfor%}
             </td>
             {%else%}
             <td>
-                <font size="2" color="blue"> {{comment["Validation"]["on_machine_output"]}}</font>
+                <font size="2"> {{comment["Validation"]["on_machine_output"]}}</font>
             </td>
             {%endif%}
-            <td>{{comment["Validation"]["keyword_availability"]}}</td>
+            <td align="center">{{comment["Validation"]["keyword_availability"]}}</td>
                 {% if pattern_type == "automation-preupgrade" or pattern_type == "automation-postupgrade" %}
             <td><p><b>Total Executed Test Case:</b> {{comment["Validation"]["Total Test Executed"][0]}}</p>
                 <p><b>Failed {{pattern_type}} Test Cases:</b></p>
@@ -76,7 +85,7 @@
                             <p></p>
                             <b>{{i}}:</b><br>
                             {%for j in comment["Validation"]["All_Commands_Execution_status"][command][i] %}
-                        <font size="2" color="blue">{{j}}</font><br>
+                        <font size="2" color="black">{{j}}</font><br>
                             {%endfor%}
                             {%endfor%}
                         {%else%}
@@ -84,13 +93,19 @@
                                 <p></p>
                                 <b>{{command}}:</b><br>
                                 {%for information in comment["Validation"]["All_Commands_Execution_status"][command] %}
-                                <font size="2" color="blue"> {{information}} </font><br>
+                                <font size="2" color="black"> {{information}} </font><br>
                                 {%endfor%}
                             {%else%}
                             <p></p>
                                 {% if comment["Validation"]["All_Commands_Execution_status"][command]|length %}
-                                    <b>{{command}}:</b><br><font size="2" color="blue">{{comment["Validation"]
-                                    ["All_Commands_Execution_status"][command]}}</font><br>
+                                    <b>{{command}}:</b><br>
+                        {% if comment["Validation"]["All_Commands_Execution_status"][command] is sequence and value is not mapping and value is not string %}
+                        {% for i in comment["Validation"]["All_Commands_Execution_status"][command] %}
+                        <font size="2" color="black">{{i}}</font><br>
+                        {%endfor%}
+                        {%else%}
+                        <font size="2" color="black">{{comment["Validation"]["All_Commands_Execution_status"][command]}}</font><br>
+                        {%endif%}
                                 {%endif%}
                             {%endif%}
                         {%endif%}
@@ -103,19 +118,17 @@
             {%else%}
             <td>No Production log available</td>
             {%endif%}
-            <td><a href=/edit_observation/{{pattern_type}}/{{index[0]}}/{{comment["_id"]}}>data_update</a> </td>
+            <td><a href=/edit_observation/{{pattern_type}}/{{loop.index}}/{{comment["_id"]}}>data_update</a> </td>
         </tr>
       {%endfor%}
       </tbody>
       <tfoot>
         <tr>
-          <th colspan="15">
-            redhat.com
+          <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>
     </table>
-    <button type="button" onclick="window.location.href='/';">Home</button>
-    <button onclick="goBack()">Back</button>
 </body>
 </html>

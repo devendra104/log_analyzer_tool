@@ -1,6 +1,6 @@
 import bson
-from utils.common import Common
 from pymongo import MongoClient
+from utils.common import Common
 
 DB_CONFIG = Common.validation_param_detail("environment_setup.yaml", "config")
 
@@ -11,16 +11,16 @@ def get_db_connection(db_name=None):
     :return:
     """
     try:
-        connection = MongoClient(host=DB_CONFIG["mongodb_container"],
-                                 port=DB_CONFIG["mongodb_port"])[db_name]
+        connection = MongoClient(
+            host=DB_CONFIG["mongodb_container"], port=DB_CONFIG["mongodb_port"]
+        )[db_name]
         return connection
     except Exception as ex:
         Common.logger.info(f"Failed to stabilised the DB connection: {ex}")
         return
 
 
-def extracting_build_info(job_name=None, build_number=None,
-                          component_version=None):
+def extracting_build_info(job_name=None, build_number=None, component_version=None):
     """
     :param job_name:
     :param build_number:
@@ -31,11 +31,15 @@ def extracting_build_info(job_name=None, build_number=None,
     collections = db.files
     try:
         if job_name and build_number and component_version:
-            fs = collections.find({"Job-Name": f'{job_name}',
-                                   "Build-Number": f'{build_number}',
-                                   "Build-Version": f"{component_version}"})
+            fs = collections.find(
+                {
+                    "Job-Name": f"{job_name}",
+                    "Build-Number": f"{build_number}",
+                    "Build-Version": f"{component_version}",
+                }
+            )
         elif job_name and (not (build_number and component_version)):
-            fs = collections.find({"Job-Name": f'{job_name}'})
+            fs = collections.find({"Job-Name": f"{job_name}"})
         return fs
     except Exception as ex:
         Common.logger.warning(f"Failed to extract build information: {ex}")
@@ -49,9 +53,7 @@ def extracting_data_by_field(field_name=None, field_value=None):
     """
     db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
-    fs = collections.find({
-        f"{field_name}": f"{field_value}"
-    })
+    fs = collections.find({f"{field_name}": f"{field_value}"})
     return fs
 
 
@@ -63,7 +65,7 @@ def regex_data_retrieval(job_name):
     db = get_db_connection(db_name=DB_CONFIG["database_name"])
     collections = db.files
     Common.logger.info(f"Data retrieval is started {job_name}")
-    fs = collections.find({'Job-Name': {'$regex': f'{job_name}'}})
+    fs = collections.find({"Job-Name": {"$regex": f"{job_name}"}})
     return fs
 
 
@@ -124,7 +126,9 @@ def accessing_observation_db(check_before_insert=False):
     return fs
 
 
-def db_update(test_data=None, observation_record_key=None, observation_record_value=None):
+def db_update(
+    test_data=None, observation_record_key=None, observation_record_value=None
+):
     """
     This method use to update the log analysis database whenever new record come
     :param dict test_data:
@@ -132,15 +136,17 @@ def db_update(test_data=None, observation_record_key=None, observation_record_va
     :param str observation_record_value:
     """
     if observation_record_key and observation_record_value:
-            data_status = check_before_insertion(
-                 observation_record_key=observation_record_key,
-                 observation_record_value=observation_record_value)
+        data_status = check_before_insertion(
+            observation_record_key=observation_record_key,
+            observation_record_value=observation_record_value,
+        )
     else:
         data_status = check_before_insertion(
             build_no=test_data["Build-Number"],
             job_name=test_data["Job-Name"],
             component_version=test_data["Build-Version"],
-            snap_number=test_data["Snap-Version"])
+            snap_number=test_data["Snap-Version"],
+        )
     status = True if data_status else False
     if status:
         return
@@ -156,9 +162,14 @@ def db_update(test_data=None, observation_record_key=None, observation_record_va
         collections.insert(test_data)
 
 
-def check_before_insertion(observation_record_key=None,
-                           observation_record_value=None, build_no=None, job_name=None
-                           , component_version=None, snap_number=None):
+def check_before_insertion(
+    observation_record_key=None,
+    observation_record_value=None,
+    build_no=None,
+    job_name=None,
+    component_version=None,
+    snap_number=None,
+):
     """
     This method use to check whether the record present or not and return their
     status.
@@ -176,11 +187,39 @@ def check_before_insertion(observation_record_key=None,
         collections = accessing_all_data(check_before_insert=True)
 
     if observation_record_key and observation_record_value:
-        fs = collections.find({f"{observation_record_key}": f"{observation_record_value}"})
+        fs = collections.find(
+            {f"{observation_record_key}": f"{observation_record_value}"}
+        )
     else:
         fs = collections.find(
-            {'Build-Number': build_no, 'Job-Name': f'{job_name}',
-             "Build-Version": f"{component_version}",
-             "Snap-Version": f"{snap_number}"})
+            {
+                "Build-Number": build_no,
+                "Job-Name": f"{job_name}",
+                "Build-Version": f"{component_version}",
+                "Snap-Version": f"{snap_number}",
+            }
+        )
     status = True if fs.count() > 0 else False
     return status
+
+
+def data_collection_based_on_job_type(job_name, job_status):
+    """
+    :return:
+    """
+    db = get_db_connection(db_name=DB_CONFIG["database_name"])
+    collections = db.files
+    fs = collections.find({"Job-Name": f"{job_name}", "Build-Status": f"{job_status}"})
+    return fs.count()
+
+
+def extracting_job_status(job_name):
+    """
+    This method is used to extract the passed and failed data from the database
+    :return: collection
+    """
+    passed = data_collection_based_on_job_type(job_name, "SUCCESS")
+    failed = data_collection_based_on_job_type(job_name, "FAILURE")
+    unstable = data_collection_based_on_job_type(job_name, "UNSTABLE")
+    job_results = {"PASSED": passed, "FAILED": failed, "UNSTABLE": unstable}
+    return job_results

@@ -1,16 +1,16 @@
-import os
 import ast
-import re
-import json
-import pickle
-import xlwt
-import time
-import yaml
-import paramiko
 import configparser
+import json
 import logging.config
+import os
+import pickle
+import re
+import time
 from functools import reduce
 
+import paramiko
+import xlwt
+import yaml
 from cryptography.fernet import Fernet
 
 
@@ -19,17 +19,21 @@ class Common:
     config_path = os.path.join(os.path.abspath("."), "config")
     if not os.path.exists(config_path):
         config_path = os.path.join(os.path.abspath("."), "config")
-    logging.config.fileConfig(fname=f'{config_path}/logger.ini',
-                              disable_existing_loggers=False)
-    logger = logging.getLogger('log_analyzer')
+    logging.config.fileConfig(
+        fname=f"{config_path}/logger.ini", disable_existing_loggers=False
+    )
+    logger = logging.getLogger("log_analyzer")
 
     @staticmethod
     def log_location_update():
         config = configparser.ConfigParser()
         config.read(f"{Common.config_path}/logger.ini")
-        config.set("handler_fileHandler", 'args',
-                   f"('{Common.report_path}/Automation.log', 'a')")
-        with open(f"{Common.config_path}/logger.ini", 'w') as f:
+        config.set(
+            "handler_fileHandler",
+            "args",
+            f"('{Common.report_path}/Automation.log', 'a')",
+        )
+        with open(f"{Common.config_path}/logger.ini", "w") as f:
             config.write(f)
 
     @staticmethod
@@ -38,15 +42,20 @@ class Common:
         This method use to convert the validation_parameter yaml file in to dictionary.
         :return: validation_param
         """
-        validation_param = ast.literal_eval \
-            (json.dumps(yaml.load(open(f"{Common.config_path}/{yaml_file_name}"),
-                                  Loader=yaml.FullLoader)[file_header]))
+        validation_param = ast.literal_eval(
+            json.dumps(
+                yaml.load(
+                    open(f"{Common.config_path}/{yaml_file_name}"),
+                    Loader=yaml.FullLoader,
+                )[file_header]
+            )
+        )
         return validation_param
 
     @staticmethod
     def get_config_value(key):
         cfg = Common.validation_param_detail("environment_setup.yaml", "config")
-        return reduce(lambda c, k: c[k], key.split('.'), cfg)
+        return reduce(lambda c, k: c[k], key.split("."), cfg)
 
     @staticmethod
     def page_common_logic(fs, per_page, id=1):
@@ -67,7 +76,8 @@ class Common:
         else:
             page_list = Common.index_list(0, pages)
             data_list = requested_record[
-                        (per_page * (id - 1)):(per_page * (id - 1)) + per_page]
+                (per_page * (id - 1)) : (per_page * (id - 1)) + per_page
+            ]
         return page_list, data_list
 
     @staticmethod
@@ -129,9 +139,9 @@ class Common:
         """
         satellite_log = []
         if log_type == "satellite-log":
-            satellite_log = re.split(r'(\[DEBUG \d*-\d*-\d*\w\d*:\d*:\d* \w*\])', log)
+            satellite_log = re.split(r"(\[DEBUG \d*-\d*-\d*\w\d*:\d*:\d* \w*\])", log)
         elif (log_type == "messages") or (log_type == "candelpin-log"):
-            satellite_log = re.split(r'(\w{1,3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2})', log)
+            satellite_log = re.split(r"(\w{1,3} \d{1,2} \d{1,2}:\d{1,2}:\d{1,2})", log)
         if satellite_log:
             satellite_log.pop(0)
         log = Common.combining_alternate_element(satellite_log)
@@ -143,9 +153,12 @@ class Common:
         This method use to prepare the log based on users request.
         :param dict data:
         """
-        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        report_file_path = (
+            f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        )
         fd = open(f"{report_file_path}/mail_report.html", "w")
-        fd.write('''
+        fd.write(
+            """
                 <html>
                     <head>
                         <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
@@ -171,8 +184,10 @@ class Common:
 
                     <body>
                         <p><font color="black"> Hi All </font></p>
-                        ''')
-        fd.write('''
+                        """
+        )
+        fd.write(
+            """
                 <p><font color="black">{}
                     </font></p>
                         <table>
@@ -183,9 +198,14 @@ class Common:
                                     <th> Job URL </th>
                                     <th> Bugzilla </th>
                                     <th> Job Status </th>
-                                    </tr></thead> '''.format(data["body"]))
-        data.pop('body')
-        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+                                    </tr></thead> """.format(
+                data["body"]
+            )
+        )
+        data.pop("body")
+        report_file_path = (
+            f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        )
 
         if os.path.isfile(f"{report_file_path}/subject"):
             os.remove(f"{report_file_path}/subject")
@@ -197,41 +217,45 @@ class Common:
 
         with open(f"{report_file_path}/recipient", "wb") as handler:
             pickle.dump(data["recipient"], handler)
-        data.pop('recipient')
-
+        data.pop("recipient")
         for _ in data:
-            # need to check
-            fd.write('<tr><td>{}</td>'.format(_, data[_]))
+            fd.write("<tr><td>{}</td>".format(_, data[_]))
             fd.write("<td>")
             for content in data[_]["highlighted_information"]:
                 if (content.lstrip()).rstrip():
-                    if re.search(r'tests.', f"{content}"):
+                    if re.search(r"tests.", f"{content}"):
                         fd.write(
-                            f"<font color=red><li align=\"left\">{(content.lstrip()).rstrip()}</li></font>")
+                            f'<font color=red><li align="left">{(content.lstrip()).rstrip()}</li></font>'
+                        )
                     else:
-                        fd.write(
-                            f"<li align=\"left\">{(content.lstrip()).rstrip()}</li>")
+                        fd.write(f'<li align="left">{(content.lstrip()).rstrip()}</li>')
             fd.write("</td>")
             fd.write(f"<td><a href={data[_]['Build Url']}>Job Link</a></td>")
-            if data[_]['bugzilla'].lstrip().rstrip():
-                fd.write(
-                    f"<td><a href=https://bugzilla.redhat.com/show_bug.cgi?id={data[_]['bugzilla']}>Bugzilla_link</a></td>")
-            else:
-                fd.write(f"<td>{data[_]['bugzilla']}</a></td>")
-            if data[_]['Build_Status'] == "SUCCESS":
+            fd.write("<td>")
+            for bz in data[_]["bugzilla"].split("."):
+                if bz.lstrip().rstrip():
+                    fd.write(
+                        f" <a href=https://bugzilla.xyz.com/show_bug.cgi?id={bz}>{bz}</a> "
+                    )
+                else:
+                    fd.write(f"{bz}")
+            fd.write("</td>")
+            if data[_]["Build_Status"] == "SUCCESS":
                 color = "green"
                 fd.write(f"<td><font color={color}>PASSED</font></td>")
             else:
                 color = "red"
                 fd.write(f"<td><font color={color}>FAILED</font></td>")
-        fd.write('''
+        fd.write(
+            """
         </table>
         </body>
         <p><font color="black">Note: For more details</font>
-        <form action="https://abc.doc"><input type="submit" value="Details Page" /></form></p>
+        <form action="https://wikipage></form></p>
         <p><font color="black">Thanks</font><br>
-        <font color="black">XYZ</font><p>
-        </html>''')
+        <font color="black">xyz</font><p>
+        </html>"""
+        )
         fd.close()
         Common.logger.info("Report prepared for the selected job and their type")
 
@@ -256,20 +280,26 @@ class Common:
         """
         This method use to copy the report to the mail server.
         """
-        report_file_path = f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        report_file_path = (
+            f'{os.path.abspath(".")}/{Common.get_config_value("report_location")}'
+        )
         with open(f"{report_file_path}/subject", "rb") as subject_handler:
             subject = pickle.load(subject_handler)
         with open(f"{report_file_path}/{'recipient'}", "rb") as recipient_handler:
             recipient = pickle.load(recipient_handler)
-        report_file_path = f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
+        report_file_path = (
+            f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
+        )
         try:
             if os.path.isfile(f"{report_file_path}/mail_report.html"):
-                os.popen(f"ssh -i {Common.get_config_value('build_server_pemfile')} "
-                         f"-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-                         f" root@{Common.get_config_value('build_server_hostname')}"
-                         f" {Common.get_config_value('mail_script_location')}/"
-                         f"{Common.get_config_value('mail_script_name')} "
-                         f"{subject} {recipient}")
+                os.popen(
+                    f"ssh -i {Common.get_config_value('build_server_pemfile')} "
+                    f"-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                    f" root@{Common.get_config_value('build_server_hostname')}"
+                    f" {Common.get_config_value('mail_script_location')}/"
+                    f"{Common.get_config_value('mail_script_name')} "
+                    f"{subject} {recipient}"
+                )
                 Common.logger.info("Mail send successfully")
         except Exception as ex:
             Common.logger.warning(f"Mail sent failed due to exception: {ex}")
@@ -279,25 +309,32 @@ class Common:
         """
         This method use to prepare the environment and check the data path exist or not.
         """
-        report_file_path = f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
-        data_location_path = f"{os.path.abspath('.')}/{Common.get_config_value('data_location')}"
+        report_file_path = (
+            f"{os.path.abspath('.')}/{Common.get_config_value('report_location')}"
+        )
+        data_location_path = (
+            f"{os.path.abspath('.')}/{Common.get_config_value('data_location')}"
+        )
         if f"{Common.get_config_value('report_location')}":
             if os.path.isdir(f"{report_file_path}"):
-                for data_path, directory_list, file_list in \
-                        os.walk(f"{report_file_path}"):
-                    [os.remove(f"{report_file_path}/{file}")
-                     for file in file_list]
+                for data_path, directory_list, file_list in os.walk(
+                    f"{report_file_path}"
+                ):
+                    [os.remove(f"{report_file_path}/{file}") for file in file_list]
             else:
                 os.mkdir(f"{report_file_path}")
             workbook = xlwt.Workbook()
-            workbook.add_sheet('test1')
+            workbook.add_sheet("test1")
             workbook.save(f"{report_file_path}/report.xls")
-        if f'{Common.get_config_value("data_location")}' \
-                not in Common.get_config_value("unsupported_path"):
+        if (
+            f'{Common.get_config_value("data_location")}'
+            not in Common.get_config_value("unsupported_path")
+        ):
             try:
                 if os.path.isdir(f"{data_location_path}"):
-                    for data_path, directory_list, file_list in \
-                            os.walk(f"{data_location_path}"):
+                    for data_path, directory_list, file_list in os.walk(
+                        f"{data_location_path}"
+                    ):
                         [os.remove(f"{data_path}/{file}") for file in file_list]
                 else:
                     os.mkdir(f"{data_location_path}")
@@ -308,27 +345,52 @@ class Common:
         Common.logger.info("Environment preparation completed successfully")
 
     @staticmethod
-    def version_update(component_version):
+    def version_update(component_version, job_type):
         """
         This method use to build the sub_job and validation_parameter yaml file as per
          the version request.
         :param str component_version: version name of the build job,
         it would be like 6.0, 6.5 etc
+        :param str job_type:
         """
-        version_update_list = {"validation_parameter.sample": "validation_parameter.yaml"
-            , "machine_detail.sample": "machine_detail.yaml"}
-        command = f"sed -i 's/<component-version>/{component_version}/'"
+        version_update_list = {
+            "validation_parameter.sample": "validation_parameter.yaml",
+            "machine_detail.sample": "machine_detail.yaml",
+        }
+        sample_file_data = Common.validation_param_detail(
+            "validation_parameter.sample", "jenkins_job_details"
+        )
+        # The purpose of this line to check the subversion of the job and update
+        # their supported subversion in the validation_parameter.yaml"
+        try:
+            if sample_file_data[f"{job_type}"][
+                "sub_version_count"
+            ] != component_version.count("."):
+                component_version = component_version[
+                    0 : int(sample_file_data[f"{job_type}"]["sub_version_count"]) + 2
+                ]
+                Common.logger.info(f"Supported Component version: {component_version}")
+            command = f"sed -i 's/<component-version>/{component_version}/'"
+        except Exception as ex:
+            Common.logger.error(
+                f"Component Version: {component_version} and Job Type "
+                f"{job_type} is not supported and dump error {ex}"
+            )
+
         for tmp_file in version_update_list:
             if os.path.isfile(f"{Common.config_path}/{version_update_list[tmp_file]}"):
                 os.remove(f"{Common.config_path}/{version_update_list[tmp_file]}")
-            status = os.popen(f"cp {Common.config_path}/{tmp_file} {Common.config_path}/"
-                              f"{version_update_list[tmp_file]}")
+            status = os.popen(
+                f"cp {Common.config_path}/{tmp_file} {Common.config_path}/"
+                f"{version_update_list[tmp_file]}"
+            )
             status.close()
             file_name = f"{Common.config_path}/{version_update_list[tmp_file]}"
             status = os.popen(f"{command} {file_name}")
             status.close()
         Common.logger.info(
-            "Version updated successfully in runtime gernated validation yaml file")
+            "Version updated successfully in runtime gernated validation yaml file"
+        )
 
     @staticmethod
     def ssh_connection_handling(ssh_object, hostname, username, password):
@@ -350,9 +412,9 @@ class Common:
     @staticmethod
     def record_updater(records, observations):
         """
+        This method is used to update the record.
         :param records:
         :param observations:
-        :return:
         """
         for record in records:
             try:
@@ -361,7 +423,9 @@ class Common:
                 record = record
             try:
                 if type(records[record]) is dict:
-                    records[record] = Common.record_updater(records[record], observations)
+                    records[record] = Common.record_updater(
+                        records[record], observations
+                    )
                 elif type(records[record]) is list:
                     list_records = []
                     for list_record in records[record]:
@@ -369,12 +433,16 @@ class Common:
                             if observation != "_id":
                                 try:
                                     if re.search(observation, f"{list_record}"):
-                                        if not re.search(observations[observation],
-                                                         f"{records[record]}"):
+                                        if not re.search(
+                                            observations[observation],
+                                            f"{records[record]}",
+                                        ):
                                             if not re.search("-->", f"{list_record}"):
                                                 list_records.append(
-                                                    f"{list_record}" + " --> " +
-                                                    observations[observation])
+                                                    f"{list_record}"
+                                                    + " --> "
+                                                    + observations[observation]
+                                                )
                                             else:
                                                 list_records.append(list_record)
                                         else:
@@ -383,7 +451,8 @@ class Common:
                                         list_records.append(list_record)
                                 except Exception as ex:
                                     Common.logger.warning(
-                                        f"Exception happened in observation comparison {ex}")
+                                        f"Exception happened in observation comparison {ex}"
+                                    )
                     records[record] = list_records
                 else:
                     records = Common.data_comparison(observations, records, record)
@@ -394,7 +463,7 @@ class Common:
     @staticmethod
     def data_comparison(observations, records, record):
         """
-
+        This method is used to compare the observation with existing record.
         :param observations:
         :param records:
         :param record:
@@ -404,46 +473,43 @@ class Common:
             if observation != "_id":
                 try:
                     if re.search(observation, f"{records[record]}"):
-                        if not re.search(observations[observation], f"{records[record]}"):
-                            records[record] = f"{records[record]}" + " --> " + \
-                                              observations[observation]
+                        if not re.search(
+                            observations[observation], f"{records[record]}"
+                        ):
+                            records[record] = (
+                                f"{records[record]}"
+                                + " --> "
+                                + observations[observation]
+                            )
                 except Exception as ex:
                     Common.logger.warning(f"Exception happened in data comparison {ex}")
         return records
 
     @staticmethod
-    def json_validator(form_object):
-        """
-        :param form_object:
-        :return:
-        """
-        try:
-            if ast.literal_eval(form_object.data["observation_data"]):
-                return True
-        except Exception:
-            return False
-
-    @staticmethod
     def data_preparation_for_report(job_category, job_name, bugzilla, build_number):
         """
-        This methods uses tpo prepare the test report
+        This method is used to collect the record based on the provided details
         :param job_category:
         :param job_name:
         :param bugzilla:
         :param build_number:
-        :return:
+        :return common report
         """
         common_report = dict()
         if len(job_category) == len(job_name) == len(bugzilla):
             for job_no in range(len(job_category)):
-                common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[job_no],
-                                                       "bugzilla": bugzilla[job_no]}
+                common_report[job_category[job_no]] = {
+                    "job_name": job_name[job_no],
+                    "build_number": build_number[job_no],
+                    "bugzilla": bugzilla[job_no],
+                }
         elif len(bugzilla) == 0 and (len(job_category) == len(job_name)):
             for job_no in range(len(job_category)):
-                common_report[job_category[job_no]] = {"job_name": job_name[job_no],
-                                                       "build_number": build_number[job_no],
-                                                       "bugzilla": ""}
+                common_report[job_category[job_no]] = {
+                    "job_name": job_name[job_no],
+                    "build_number": build_number[job_no],
+                    "bugzilla": "",
+                }
         else:
             for job_no in range(len(job_category)):
                 try:
@@ -454,10 +520,14 @@ class Common:
 
             for job_no in range(len(job_category)):
                 try:
-                    common_report[job_category[job_no]]["build_number"] = build_number[job_no]
+                    common_report[job_category[job_no]]["build_number"] = build_number[
+                        job_no
+                    ]
                     temp = job_no
                 except IndexError:
-                    common_report[job_category[job_no]]["build_number"] = build_number[temp]
+                    common_report[job_category[job_no]]["build_number"] = build_number[
+                        temp
+                    ]
 
             for job_no in range(len(job_category)):
                 try:
@@ -470,15 +540,15 @@ class Common:
     @staticmethod
     def test_map_details(data_list):
         """
-        This method uses to create the test map
-        :param list data_list:
-        :return list:
+        This method is used to create a map based on the provided datalist.
+        :param data_list:
+        :return: list of job name
         """
         test_data_map = list()
         test_map = Common.get_config_value("test_map")
         for job_name in data_list:
             try:
-                job_prefix = re.search(r'\w*-\w*', job_name["Job-Name"]).group()
+                job_prefix = re.search(r"\w*-\w*", job_name["Job-Name"]).group()
             except Exception:
                 job_prefix = job_name["Job-Name"]
             if job_prefix in test_map:
@@ -488,12 +558,11 @@ class Common:
     @staticmethod
     def decoding_strings(data):
         """
-        This method uses to decode the passed string.
+        This method is used to convert the unicode string in to string
         :param data:
-        :return:
         """
         if isinstance(data, str):
-            data = data.replace("b'", '')
+            data = data.replace("b'", "")
             return data
         elif isinstance(data, bytes):
             return data.decode()
@@ -503,12 +572,12 @@ class Common:
     @staticmethod
     def decrypt(encryption_value):
         """
-        This method uses to decrypt the password
+        This method is used to decrypt the credentials based on their job keys.
         :param encryption_value:
-        :return str: decrypt key
+        :return:
         """
         Common.logger.info("Decryption job started started")
-        key = Common.get_config_value('jenkins_key')
+        key = Common.get_config_value("jenkins_key")
         fkey = Fernet(key.encode())
         decrypt_value = fkey.decrypt(encryption_value.encode())
         return decrypt_value
