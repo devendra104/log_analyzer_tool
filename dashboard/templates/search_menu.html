@@ -1,33 +1,30 @@
 <!DOCTYPE html>
 <html>
- <link rel="stylesheet" type="text/css" href="css/main.css">
- <style>
-.t1{
-  width:80%;
-  min-width: 100px;
-  min-height:100px;
-  text-align: center;
-  border:1px solid black;
-  }
-</style>
+ <head>
+     <link rel="stylesheet" type="text/css" href="css/main.css">
+     <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+     <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+     <link href='https://fonts.googleapis.com/css?family=Caesar Dressing' rel='stylesheet'>
+ </head>
+
   <body>
-   <h2 style="margin:0;">
-      Search Menu Dashboard
-    </h2>
-            <table class="t1" summary="Search Menu Dashboard">
+   <h1>Search Menu Dashboard</h1>
+            <table id="customers">
       <thead>
         <tr>
-            <th> Index</th><th> Search Menu</th></tr>
-            </thead>
-        <tbody>
-        <tr><td>1</td><td><a href=/search_by_component>Job Search By Field</a></td></tr>
-        <tr><td>2</td><td><a href=/build_search>Job Search By Name, Component Version, Snap Number</a></td></tr>
-        </td></tr>
-        </tbody>
+            <th style="text-align:center"> Index</th>
+            <th style="text-align:center"> Search Method</th>
+        </tr>
+      </thead>
+                <tbody>
+                    <tr><td style="text-align:center">1</td><td><a href=/search_by_component>Job Search By Field</a></td></tr>
+                    <tr><td style="text-align:center">2</td><td><a href=/build_search>Job Search By Name, Component Version, Snap Number</a></td></tr>
+                    </td></tr>
+                </tbody>
              <tfoot>
         <tr>
-          <th colspan="10">
-            redhat.com
+         <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>

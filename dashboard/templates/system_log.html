@@ -1,25 +1,23 @@
 <html>
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+   <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link href='https://fonts.googleapis.com/css?family=Caesar Dressing' rel='stylesheet'>
 </head>
-<script type=text/javascript src="{{url_for('static', filename='js/common_function.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/back.js') }}"></script>
 <body>
-    <table class="t1" summary="System Log of Respected Job">
+    <table id="customers">
       <thead>
             <tr>
-            <th>Satellite</th>
-            <th>satellite-installer</th>
-            <th>capsule-installer</th>
-            <th>Capsule Log</th>
-                <th>Production Log</th>
-                <th>Proxy Log </th>
-                <th>Candlepin Log </th>
-                <th>Messages</th>
-                <th>Catlina Log</th>
+            <th style="text-align:center">Satellite</th>
+            <th style="text-align:center">satellite-installer</th>
+            <th style="text-align:center">capsule-installer</th>
+            <th style="text-align:center">Capsule Log</th>
+                <th style="text-align:center">Production Log</th>
+                <th style="text-align:center">Proxy Log </th>
+                <th style="text-align:center">Candlepin Log </th>
+                <th style="text-align:center">Messages</th>
+                <th style="text-align:center">Catlina Log</th>
       </thead>
       <tbody>
         <tr> <td> {% if "satellite-log" in record%}
@@ -58,12 +56,12 @@
       </tbody>
       <tfoot>
         <tr>
-          <th colspan="15">
-            redhat.com
+          <th colspan="15" style="text-align:center;">
+            XYZ.com
           </th>
         </tr>
       </tfoot>
     </table>
-<button onclick="goBack()">Back</button>
+     <button onclick="history.back(-1)">Back</button>
 </body>
 </html>

@@ -1,4 +1,4 @@
-class SystemProperties(object):
+class SystemProperties:
     def __init__(self):
         self.job_map = {}
         self.row_no = 0

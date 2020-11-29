@@ -16,6 +16,7 @@ services:
           - ./report:/root/report:z
     mongodb:
         image: mongo:4.2.0
+        user: mongo
         container_name: "mongodb"
         ports:
           - 27017:27017

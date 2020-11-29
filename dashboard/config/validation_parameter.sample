@@ -23,6 +23,7 @@ jenkins_job_details:
       pattern1: "ansible-playbook -i inventory satellite-clone-playbook.yml"
       pattern2: "PLAY RECAP *"
     highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    sub_version_count: '1'
 
   job1_2:
     job_name: "upgrade-to-<component-version>-rhel7"
@@ -35,6 +36,7 @@ jenkins_job_details:
       - "Clients are ready for Upgrade."
     pattern_to_pattern_filter: ""
     highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    sub_version_count: '1'
 
   job1_3:
     job_name: "automation-preupgrade-<component-version>-scenario-tests-rhel7"
@@ -46,6 +48,7 @@ jenkins_job_details:
     keyword_availability:
       - "Started tearDownClass"
     highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    sub_version_count: '1'
 
   job1_4:
     job_name: "upgrade-phase-<component-version>-rhel7"
@@ -61,6 +64,7 @@ jenkins_job_details:
       - "Satellite is upgraded from"
       - "The Capsule is upgraded from"
     highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    sub_version_count: '1'
 
   job1_5:
     job_name: "automation-postupgrade-<component-version>-scenario-tests-rhel7"
@@ -72,3 +76,4 @@ jenkins_job_details:
     keyword_availability:
       - "Started tearDownClass"
     highlighted_content: "awk -F'HIGHLIGHT:upgrade_logging:' '/HIGHLIGHT:upgrade_logging/{print $NF}'"
+    sub_version_count: '1'

@@ -3,23 +3,22 @@
 # the data from xls sheet and upate the result into xls sheet
 #
 #############################
-
-
+import io
 import os
+
 import xlrd
 import xlwt
-import io
 from xlutils.copy import copy
 
 
-class Xlsparser():
+class Xlsparser:
 
     MODEREAD = "read"
     MODEWRITE = "write"
 
     def __init__(self, file_loc, mode=MODEREAD):
         if (mode == self.MODEREAD) and (not os.path.isfile(file_loc)):
-            raise RuntimeError("Failed to open xls file [{}]".format(file_loc))
+            raise RuntimeError(f"Failed to open xls file [{file_loc}]")
         self.mode, self.file_loc = mode, file_loc
         self.workbook, self.sheets, self.sheet = None, None, None
 
@@ -36,31 +35,44 @@ class Xlsparser():
             self.sheets = self.workbook.sheets()
         elif self.mode == self.MODEWRITE:
             self.workbook = xlwt.Workbook()
-            self.sheet = self.workbook.add_sheet('Sheet 1')
-            self.workbook.save("{}".format(result_file))
+            self.sheet = self.workbook.add_sheet("Sheet 1")
+            self.workbook.save(f"{result_file}")
 
     def close_work_book(self):
         if self.mode == self.MODEREAD:
             pass
         if self.mode == self.MODEWRITE:
-            with io.open(self.file_loc, 'wb') as file:
+            with open(self.file_loc, "wb") as file:
                 self.workbook.save(file)
 
-    def read_partial_sheet(self, sheet_number, from_row=None,
-                           from_column=None, n_rows=None, n_columns=None):
+    def read_partial_sheet(
+        self, sheet_number, from_row=None, from_column=None, n_rows=None, n_columns=None
+    ):
 
-        to_row = from_row + n_rows if n_rows and (from_row + n_rows) <= \
-            self.sheets[sheet_number].nrows else self.sheets[sheet_number].nrows
-        to_col = from_column + n_columns if n_columns and (from_column + n_columns) <= \
-            self.sheets[sheet_number].ncols else self.sheets[sheet_number].ncols
+        to_row = (
+            from_row + n_rows
+            if n_rows and (from_row + n_rows) <= self.sheets[sheet_number].nrows
+            else self.sheets[sheet_number].nrows
+        )
+        to_col = (
+            from_column + n_columns
+            if n_columns
+            and (from_column + n_columns) <= self.sheets[sheet_number].ncols
+            else self.sheets[sheet_number].ncols
+        )
 
         if from_row > to_row or from_column > to_col:
-            raise RuntimeError("Invalid column [{}] or row [{}] number.".\
-                               format(from_row, from_column))
+            raise RuntimeError(
+                f"Invalid column [{from_row}] or row [{from_column}] number."
+            )
 
-        data = [[self.sheets[sheet_number].cell(row_no, column).value
-                for column in range(to_col)]
-                for row_no in range(from_row, to_row)]
+        data = [
+            [
+                self.sheets[sheet_number].cell(row_no, column).value
+                for column in range(to_col)
+            ]
+            for row_no in range(from_row, to_row)
+        ]
         return data
 
     def read_sheet(self, sheet_number):
@@ -98,7 +110,7 @@ class Xlsparser():
             style.font.bold = True
             pattern = xlwt.Pattern()
             pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-            pattern.pattern_back_colour = xlwt.Style.colour_map['ocean_blue']
+            pattern.pattern_back_colour = xlwt.Style.colour_map["ocean_blue"]
             style.pattern = pattern
         style.alignment.WRAP_AT_RIGHT = True
         style.alignment.VERT_TOP = True
