@@ -1,0 +1,31 @@
+name: log_analyzer_tool
+pull_request:
+  types: ["opened", "synchronize", "reopened"]
+
+env:
+    PYCURL_SSL_LIBRARY: gnutls
+jobs:
+  codechecks:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.8]
+    steps:
+      - name: Checkout log_analyzer_tool
+        uses: actions/checkout@v2
+      - name: Set Up Python-${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Dependencies
+          run: |
+          pip install -U -r requirements.txt
+
+      - name: Pre Commit Checks
+          uses: pre-commit/action@v2.0.0
+
+      - name: Make Docs
+          run: |
+            make test-docstrings
+            make docs
