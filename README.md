@@ -1,15 +1,19 @@
 # Log Analyzer Tool
 
-Log Analyzer tool, Analyze the build log using pre-defined log parser and keep the analysis data in such a manner that helps further analysis. 
-The record stores in the collection base database and will be available for future job analysis.
+Log Analyzer tool helps to analyze the log based on the provided information like the job type(unique token), job_name(build job),
+component_version, snap number, and checks on the target machine, we pick all these data from the pre-defined values [validation_parameter.sample](https://github.com/devendra104/log_analyzer_tool/tree/master/dashboard/config/validation_parameter.sample),
+if someone wants to add a new job then they need to update validation the [validation_parameter.sample](https://github.com/devendra104/log_analyzer_tool/tree/master/dashboard/config/validation_parameter.sample) file using the predefined format.
 
-We provide the functionality to update the observation, and keeping all these observations in a separate database so whenever a new analysis trigger
-we check the errors and update them with existing observations.
 
-The purpose of this tool to reduce the manual effort, maintain the record of all possible suspicious messages and their observation in a database that will help us in the future to compare the record.
+This tool collects the logs from the Jenkins job and performs the analysis by taking the help of the earlier observations, all the observation
+related data stores in the Mongo DB database [observation_db_name](https://github.com/devendra104/log_analyzer_tool/tree/master/dashboard/config/environment_setup.yaml),  we can also update the observation if we found something suspicious or expected after the analysis.
+For observation related changes we need to go on the "Build History" then select the respective job, here we get the list of the build job we click
+the data_update button for the suspicious build, and update the record by inserting the data in the dictionary format ({"Error": "Observation"}).
+All the configuration related data available in the [environment_setup.yaml](https://github.com/devendra104/log_analyzer_tool/tree/master/dashboard/config/environment_setup.yaml) file,
 
-As we all know, It is very hard to memorize all the suspicious messages and observations, gradually the observations get starts to disappear and after few months we don't know what this message means,
-Is it kind of bug or something expected, by using this tool we can handle these problems.
+
+This tool especially works with Jenkins build job. There is a number of features inside this tool, like updating the observation based on the available data, search the common error, delete the record, generate the trends based on their release version, etc, All these details are described below.
+
 
 The landing page of the log_analyzer tool is "Log Analyzer Dashboard", and it has divided into the below-mentioned options.
 
