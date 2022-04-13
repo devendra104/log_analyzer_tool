@@ -14,7 +14,7 @@ Flask==1.1.1
 flask-paginate
 Flask-WTF==0.14.2
 jenkinsapi==0.3.9
-Jinja2==2.10.1
+Jinja2==2.11.3
 paramiko==2.6.0
 pip==19.2.1
 pymongo==3.8.0
