@@ -23,7 +23,7 @@ class LogAnalyser:
         machine_name = [
             build_detail[content]
             for content in build_detail
-            if re.search(fr"{content}", f"{job_file_name}")
+            if re.search(rf"{content}", f"{job_file_name}")
         ]
 
         Common.logger.info(f"[machine name] Build machine: {machine_name}")
